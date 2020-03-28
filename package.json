@@ -10,6 +10,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "appcenter": "3.0.1",
+    "appcenter-analytics": "3.0.1",
+    "appcenter-crashes": "3.0.1",
     "galio-framework": "^0.6.3",
     "install": "^0.13.0",
     "metro-config": "^0.57.0",
