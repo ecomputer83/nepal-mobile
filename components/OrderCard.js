@@ -18,10 +18,10 @@ export default class OrderCard extends React.Component {
 
             switch(item.ProductName){
               case 'PMS':
-                ProductColor = '#437FB4';
+                ProductColor = '#303E4F';
                 break;
               case 'AGO':
-                ProductColor = '#303E4F';
+                ProductColor = '#437FB4';
                 break;
               case 'LPG':
                 ProductColor = '#909090';

@@ -69,7 +69,7 @@ const HomeStack = createStackNavigator(
     Home: {
       screen: Home,
       navigationOptions: ({ navigation }) => ({
-        header: <Header bgColor={nowTheme.COLORS.PRIMARY} message iconColor={nowTheme.COLORS.WHITE} title="" navigation={navigation} />
+        headerShown: false
       })
     }
   },

@@ -34,7 +34,7 @@ class Home extends React.Component {
     return this.state.DailyPrices.map((s,i) => {
         return (<Block style={{paddingTop: 10,
           paddingBottom: 10, paddingRight: 35,
-          paddingLeft: 15, margin: 10, backgroundColor: "#ffffff"}}>
+          paddingLeft: 15, margin: 5, backgroundColor: "#ffffff"}}>
           <Text
                 style={{
                   color: nowTheme.COLORS.BLACK,
@@ -55,7 +55,7 @@ class Home extends React.Component {
                   paddingBottom:5
                 }}
               >
-                {s.Price}
+                ₦{s.Price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                   </Text>
         </Block>)
     })
@@ -90,7 +90,7 @@ class Home extends React.Component {
       <Block row space="between" style={{padding: 10}}>
       <Block>
         <Text style={{ fontFamily: 'HKGrotesk-Light', fontSize: 14 }} color={theme.COLORS.DEFAULT}>
-            TODAYS PRICES
+            TODAY'S PRICES
         </Text>
       </Block>
       <Picker

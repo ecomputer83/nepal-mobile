@@ -18,7 +18,7 @@ const iPhoneX = () =>
 const AddButton = ({ isWhite, style, navigation, link, iconName }) => (
   <TouchableOpacity
     style={[styles.button, style]}
-    onPress={() => navigation.navigate(link)}
+    
   >
    <Fontello name={iconName} size={16}
       color="#ffffff"

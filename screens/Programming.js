@@ -59,7 +59,7 @@ class Programming extends React.Component {
         LGA: null,
         modalVisible: false,
         spinner: false,
-        currentState: 0,
+        currentState: 1,
         LGAs: [],
         isNew: Params.isNew
       }
@@ -69,19 +69,17 @@ class Programming extends React.Component {
         this.setState({modalVisible: visible});
       }
       setIncrease(){
-        var quantity = parseInt(this.state.Quantity) + 100
+        var quantity = parseInt(this.state.Quantity) + 1000
         this.setState({Quantity: quantity.toString()})
       }
 
       setDecrease(){
-        var quantity = parseInt(this.state.Quantity) - 100
+        var quantity = parseInt(this.state.Quantity) - 1000
         this.setState({Quantity: quantity.toString()})
       }
 
       setStates(v){
-        console.log(v)
         var LGAs = ST.LGA.filter(c=>c.stateIndex == v.index);
-        console.log(LGAs)
         this.setState({LGAs: LGAs, State: v})
       }
 
@@ -145,6 +143,11 @@ class Programming extends React.Component {
         this.setModalVisible(false);
       }
 
+      setOrder = (p, remain) => {
+        this.setState({totalquantity: p.Quantity,
+          remainQuantity: remain, currentState: 1})
+      }
+
       saveandnavigate = () => {
         if(this.state.programs.length != 0) {
             this.setState({
@@ -176,6 +179,18 @@ class Programming extends React.Component {
         return (<FeatureCard item={v} index={index} />)
       })
     }
+
+    renderOrders =() => {
+      return prod.Orders.filter(c=> c.Quantity > c.Programing.map(o=>o.Quantity).reduce((a,c)=>a+c)).map((v, i) => {
+        var remainquantity = v.Quantity - (v.Programing.map(o=>o.Quantity).reduce((a,c)=>a+c))
+        return (<TouchableHighlight onPress={() => this.setOrder(v, remainquantity)}>
+                <Block width={width * 0.9} row space='between' style={styles.product}>
+                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{v.OrderId}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#AAAAAA' }}>{remainquantity}</Text>
+                </Block>
+            </TouchableHighlight>)
+      })
+    }
     renderPrograms = () => {
         let index = 0;
         return (<Block style={{ zIndex: 1, margin: 10 }}>
@@ -194,7 +209,11 @@ class Programming extends React.Component {
             transparent={false}
             visible={this.state.modalVisible}
             onRequestClose={() => {
-              Alert.alert('Modal has been closed.');
+              if(this.state.currentState > 0){
+                this.setState({currentState: this.state.currentState - 1})
+                }else{
+                  this.setModalVisible(false)
+                }
             }}>
             <Block  flex center style={{backgroundColor: '#FAFAFA'}}>
               <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
@@ -210,6 +229,12 @@ class Programming extends React.Component {
               <Block  width={width * 0.9} style={{ padding: 2 }}>
                 <Block>
                 { (currentState == 0) ?
+                <Block width={width * 0.9} style={{ marginBottom: 5 }}>
+                <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What Order Do you want to load?</Text>  
+                      {this.renderOrders()}
+                                
+                              </Block>
+                : (currentState == 1) ?
                 <Block width={width * 0.9} style={{ marginBottom: 5 }}>
                               <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Please Enter Your Truck Number</Text>
                               <Input
@@ -230,7 +255,7 @@ class Programming extends React.Component {
                                   noicon
                                 />
                               </Block>
-                : (currentState == 1) ?
+                : (currentState == 2) ?
                 <Block width={width * 0.9} style={{ marginBottom: 5 }}>
                 <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Please enter Destination details</Text>  
                               <Input
@@ -316,7 +341,7 @@ class Programming extends React.Component {
     }
                 <Block style={{marginBottom:  10}}></Block>
                               <Block width={width * 0.7} center>
-                              { (currentState < 2) ?
+                              { (currentState < 3) ?
                               <GaButton
                                     shadowless
                                     style={styles.button}
@@ -361,10 +386,8 @@ class Programming extends React.Component {
                 />
             {this.renderFeatures()}
             {this.renderPrograms()}
-            {remainQuantity != 0 ?
-            this.renderModal() : <Block />}
+            {this.renderModal()}
             <Block row style={{zIndex: 3, position: 'absolute', top: 500, right: '5%'}}>
-          {remainQuantity != 0 ?
           <FloatingActionButton
             iconName="plus"
             iconType="AntDesign"
@@ -373,7 +396,7 @@ class Programming extends React.Component {
             rippleColor={nowTheme.COLORS.WHITE}
             iconColor={nowTheme.COLORS.WHITE}
             onPress = {() => this.setModalVisible(true)}
-          /> : <Block />}
+          />
           {(this.state.programs.length != 0 && this.state.isNew) ?
           <FloatingActionButton
             iconName="check"
@@ -417,6 +440,17 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#191718',
     justifyContent: 'center',  
+  },
+  product: {
+    height: 40,
+    marginBottom: 5, 
+    paddingHorizontal: 20, 
+    borderWidth: 1, 
+    borderRadius: 5, 
+    borderColor: '#E3E2E3', 
+    backgroundColor: '#385A9E', 
+    alignItems: 'center',
+    color: '#ffffff'
   },
       button: {
         width: (width * 0.7),

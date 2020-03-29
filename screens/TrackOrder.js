@@ -176,9 +176,9 @@ class TrackOrder extends React.Component {
     }
 
     renderProducts = () => {
-      let bgColor = ["#303E4F", "#437FB4", "#909090", "#909090", "#E37E2E"]
+      let bgColor = ["#303E4F", "#437FB4", "#909090", "#000000", "#E37E2E"]
         return prod.DailyPrices.map((p, i)=>{
-            const productStyle = [styles.product, {backgroundColor: bgColor[Math.floor(Math.random()*bgColor.length)]}, (this.state.productIndex == i) && styles.selected]
+            const productStyle = [styles.product, {backgroundColor: bgColor[i]}, (this.state.productIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>
                 <Block width={width * 0.9} row space='between' style={productStyle}>
                     <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Product}</Text>
@@ -233,7 +233,11 @@ class TrackOrder extends React.Component {
               transparent={false}
               visible={this.state.modalCreateVisible}
               onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
+                if(this.state.currentPosition > 0){
+                this.setState({currentPosition: this.state.currentPosition - 1})
+                }else{
+                  this.setModalCreateVisible(false)
+                }
               }}>
               <Block  flex center style={{backgroundColor: '#FAFAFA'}}>
                 <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
@@ -481,7 +485,11 @@ class TrackOrder extends React.Component {
               transparent={false}
               visible={this.state.modalPaymentVisible}
               onRequestClose={() => {
-                Alert.alert('Modal has been closed.');
+                if(this.state.currentState > 0){
+                  this.setState({currentState: this.state.currentState - 1})
+                  }else{
+                    this.setModalPaymentVisible(false)
+                  }
               }}>
             { (!CompletePayment) ?  
               <Block  flex center style={{backgroundColor: '#FAFAFA'}}>
