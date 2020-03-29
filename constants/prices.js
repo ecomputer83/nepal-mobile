@@ -6,7 +6,7 @@ const DailyPrices = [
     {Id:5, Product: "LPG", Price: 3000.00, Unit: "kg"}
 ]
 
-const Depots = [{Id: 1, Name: "NEPAL Depot Oghere"}, {Id: 2, Name: "IBETO Depot Apapa"}, {Id: 2, Name: "IBRU Depot Apapa"}]
+const Depots = [{Id: 1, Name: "NEPAL Depot Oghara"}, {Id: 2, Name: "IBETO Depot Apapa"}, {Id: 2, Name: "IBRU Depot Apapa"}]
 
 const Orders = [{OrderId: "PO68876", Quantity: 33000, Price: 6550500.00, ProductId: 1, ProductName: "PMS", DepositDate: '12/03/2020', Depot: 1, DepotName: "Oghere", Status:"Unconifrmed",
  Programing: [{TruckNo: "KYF34534", Quantity: 10000, Destination: "24, Old Yaba road, Yaba, Lagos", Status: "Waybill"},
