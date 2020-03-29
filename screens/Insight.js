@@ -15,7 +15,7 @@ const chartConfigs = {
 class Insight extends React.Component {
     
     state = {
-        Orders: prod.Orders,
+        Marketers: prod.Marketers,
         Data: {
             labels: ["Confirmed Order", "Unconfirmed Order"],
             datasets: [
@@ -37,13 +37,13 @@ class Insight extends React.Component {
     };
     renderTableHeader = () => {
         return(
-            <Block row style={{paddingLeft: 20, paddingRight: 23, height: 36}}> 
+            <Block row style={{paddingLeft: 10, paddingRight: 23, height: 36}}> 
                 <Block style={{width: 40, alignItems: 'center', justifyContent: 'center'}}>
                     <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>#</Text>
                 </Block>
                 <Block row space='between' style={{ width: width-123, alignItems: 'center'}}>
-                    <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>Order No</Text>
-                    <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>Order Qty</Text>
+                    <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>My Customers</Text>
+                    <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>Order Qty (MTD)</Text>
                 </Block>
             </Block>
         )
@@ -51,12 +51,12 @@ class Insight extends React.Component {
 
     renderTableCell = (item, index) => {
         return(
-        <Block row style={{paddingLeft: 20, paddingRight: 23, height: 36, borderTopWidth: 1, borderTopColor: '#97979780'}}> 
+        <Block row style={{paddingLeft: 10, paddingRight: 23, height: 36, borderTopWidth: 1, borderTopColor: '#97979780'}}> 
             <Block style={{width: 40, alignItems: 'center', justifyContent: 'center'}}>
                 <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>{index}</Text>
             </Block>
             <Block row space='between' style={{ width: width-123, alignItems: 'center'}}>
-                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.OrderId}</Text>
+                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.Name}</Text>
                 <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.Quantity}</Text>
             </Block>
         </Block>
@@ -68,15 +68,15 @@ class Insight extends React.Component {
         return (
             <Block style={{margin: 10, padding: 4, backgroundColor: '#FFFFFF', borderRadius: 5, borderWidth: 1, borderColor: '#97979780', width: width-20}}>
                 <Block style={{paddingLeft: 10}}>
-                    <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>Ongoing Orders</Text>
-                    <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14}}>Current Order</Text>
-                    <Text size={20} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 24}}>PO43532</Text>
+                    <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>Marketer's Performance</Text>
+                    <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14}}>Marketer's code</Text>
+                    <Text size={20} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 24}}>NMC0432</Text>
                 </Block>
                 <Block>
                 { this.renderTableHeader()
 
                 }
-                <FlatList data={this.state.Orders} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
+                <FlatList data={this.state.Marketers} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
                             index++
                             return (this.renderTableCell(item, index))
                         }}/>

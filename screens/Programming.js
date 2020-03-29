@@ -181,8 +181,8 @@ class Programming extends React.Component {
     }
 
     renderOrders =() => {
-      return prod.Orders.filter(c=> c.Quantity > c.Programing.map(o=>o.Quantity).reduce((a,c)=>a+c)).map((v, i) => {
-        var remainquantity = v.Quantity - (v.Programing.map(o=>o.Quantity).reduce((a,c)=>a+c))
+      return prod.Orders.filter(c=> c.Quantity > ((c.Programing.length > 0) ? c.Programing.map(o=>o.Quantity).reduce((a,c)=>a+c) : 0)).map((v, i) => {
+        var remainquantity = v.Quantity - ((v.Programing.length > 0) ? v.Programing.map(o=>o.Quantity).reduce((a,c)=>a+c) : 0)
         return (<TouchableHighlight onPress={() => this.setOrder(v, remainquantity)}>
                 <Block width={width * 0.9} row space='between' style={styles.product}>
                     <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{v.OrderId}</Text>
@@ -341,7 +341,7 @@ class Programming extends React.Component {
     }
                 <Block style={{marginBottom:  10}}></Block>
                               <Block width={width * 0.7} center>
-                              { (currentState < 3) ?
+                              { (currentState > 0 && currentState < 3) ?
                               <GaButton
                                     shadowless
                                     style={styles.button}
@@ -354,7 +354,7 @@ class Programming extends React.Component {
                                     >
                                         Next
                                     </Text>
-                              </GaButton> : 
+                              </GaButton> : (currentState >= 3) ?
                                 <GaButton
                                     shadowless
                                     style={styles.button}
@@ -367,7 +367,8 @@ class Programming extends React.Component {
                                     >
                                         Confirm
                                     </Text>
-                                </GaButton> }
+                                </GaButton>
+                              : <Block />}
                               </Block>
                 
                 </Block>

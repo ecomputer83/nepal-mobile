@@ -176,7 +176,7 @@ class TrackOrder extends React.Component {
     }
 
     renderProducts = () => {
-      let bgColor = ["#303E4F", "#437FB4", "#909090", "#000000", "#E37E2E"]
+      let bgColor = ["#303E4F", "#437FB4", "#909090", "#CB582D", "#E37E2E"]
         return prod.DailyPrices.map((p, i)=>{
             const productStyle = [styles.product, {backgroundColor: bgColor[i]}, (this.state.productIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>

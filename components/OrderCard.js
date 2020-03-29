@@ -21,7 +21,7 @@ export default class OrderCard extends React.Component {
                 ProductColor = '#303E4F';
                 break;
               case 'AGO':
-                ProductColor = '#437FB4';
+                ProductColor = '#E37E2E';
                 break;
               case 'LPG':
                 ProductColor = '#909090';
