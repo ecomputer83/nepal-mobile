@@ -50,7 +50,7 @@ export default class FeatureCard extends React.Component {
                   fontFamily: 'HKGrotesk-SemiBoldLegacy',
                 }}
               >
-                {item.Destination}
+                {item.Destination.substring(0, 24)}
                   </Text>
             <Text
                 style={{
