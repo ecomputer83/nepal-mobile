@@ -180,13 +180,13 @@ const IndicatorStyles = {
     }
 
     renderProducts = () => {
-      let bgColor = ["#303E4F", "#437FB4", "#909090", "#909090", "#E37E2E"]
+      let bgColor = ["#303E4F", "#437FB4", "#909090", "#CB582D", "#E37E2E"]
         return prod.DailyPrices.map((p, i)=>{
-            const productStyle = [styles.product, (this.state.productIndex == i) && styles.selected]
+            const productStyle = [styles.product, {backgroundColor: bgColor[i]}, (this.state.productIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>
                 <Block width={width * 0.9} row space='between' style={productStyle}>
-                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, }}>{p.Product}</Text>
-                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#333333' }}>₦{p.Price}/{p.Unit}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Product}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#f4f4f4' }}>₦{p.Price}/{p.Unit}</Text>
                 </Block>
             </TouchableHighlight>)
         })
@@ -198,7 +198,7 @@ const IndicatorStyles = {
             const productStyle = [styles.product, (this.state.depotIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setDepot(p, i)}>
                 <Block width={width * 0.9} middle style={productStyle}>
-                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{p.Name}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Name}</Text>
                 </Block>
             </TouchableHighlight>)
         })
@@ -304,12 +304,12 @@ const IndicatorStyles = {
   <GaButton
                           shadowless
                           style={[styles.increbutton, {opacity: 0.35}]}
-                          color='#23C9F135'
+                          color='#23C9F165'
                           onPress={() => this.setDecrease()}
                       >
                           <Text
                               style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
-                              color={theme.COLORS.WHITE}
+                              color={theme.COLORS.BLACK}
                           >
                               -
                           </Text>
@@ -338,7 +338,7 @@ const IndicatorStyles = {
                         <Block center style={{width: (width * 0.9), marginTop: 25, padding: 10, backgroundColor: '#121112'}}>
                     <Text style={{fontSize: 14, lineHeight: 16, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>₦{TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres</Text>
-                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{product.Product} (ex Nepal Depot {depot.Name})</Text>
+                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{product.Product} (ex {depot.Name})</Text>
                     <TouchableHighlight onPress={() => this.edit()}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15}}>Edit</Text></TouchableHighlight>
 
                         </Block>
@@ -389,41 +389,12 @@ const IndicatorStyles = {
                     </Block>
       }
                   <Block style={{marginBottom:  10, marginTop: 20}}></Block>
-                                <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
-                                { (currentPosition < 2) ?
-                                <GaButton
-                                      shadowless
-                                      style={styles.nextbutton}
-                                      color={nowTheme.COLORS.PRIMARY}
-                                      onPress={() => ifInputupdated && this.Next()}
-                                  >
-                                      <Text
-                                          style={{ fontFamily: 'HKGrotesk-Medium', fontSize: 14 }}
-                                          color={theme.COLORS.WHITE}
-                                      >
-                                          Next
-                                      </Text>
-                                </GaButton> : (currentPosition == 2) ?
-                                  <GaButton
-                                      shadowless
-                                      style={styles.nextbutton}
-                                      color={nowTheme.COLORS.PRIMARY}
-                                      onPress={() => ifInputupdated && this.Next(true)}
-                                  >
-                                      <Text
-                                          style={{ fontFamily: 'HKGrotesk-Medium', fontSize: 14 }}
-                                          color={theme.COLORS.WHITE}
-                                      >
-                                          Confirm
-                                      </Text>
-                                  </GaButton> : <Block /> }
                                 
-                                </Block>
-                  
                   </Block>
                   
                 </Block>
               </Block>
+
               { (currentPosition == 3) ?  (
                               <Block width={width * 0.9} center style={{position: 'absolute', bottom: 50}}>
                                 <GaButton
@@ -481,7 +452,39 @@ const IndicatorStyles = {
                                           Proceed To Payment
                                       </Text>
                                   </GaButton>
-                                </Block>) : (<Block />)}
+                                </Block>) 
+                                : 
+                                <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
+                                { (currentPosition < 2) ?
+                                <GaButton
+                                      shadowless
+                                      style={styles.nextbutton}
+                                      color={nowTheme.COLORS.PRIMARY}
+                                      onPress={() => ifInputupdated && this.Next()}
+                                  >
+                                      <Text
+                                          style={{ fontFamily: 'HKGrotesk-Medium', fontSize: 14 }}
+                                          color={theme.COLORS.WHITE}
+                                      >
+                                          Next
+                                      </Text>
+                                </GaButton> : (currentPosition == 2) ?
+                                  <GaButton
+                                      shadowless
+                                      style={styles.nextbutton}
+                                      color={nowTheme.COLORS.PRIMARY}
+                                      onPress={() => ifInputupdated && this.Next(true)}
+                                  >
+                                      <Text
+                                          style={{ fontFamily: 'HKGrotesk-Medium', fontSize: 14 }}
+                                          color={theme.COLORS.WHITE}
+                                      >
+                                          Confirm
+                                      </Text>
+                                  </GaButton> : <Block /> }
+                                
+                                </Block>
+                  }
             </Modal>);
       }
 

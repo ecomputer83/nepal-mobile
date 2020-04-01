@@ -312,7 +312,7 @@ class Programming extends React.Component {
       <GaButton
                       shadowless
                       style={styles.increbutton}
-                      color='#23C9F1'
+                      color={nowTheme.COLORS.BACKGROUND}
                       onPress={() => this.setIncrease()}
                   >
                       <Text
@@ -337,12 +337,12 @@ class Programming extends React.Component {
 <GaButton
                       shadowless
                       style={styles.increbutton}
-                      color='#23C9F135'
+                      color='#23C9F165'
                       onPress={() => this.setDecrease()}
                   >
                       <Text
                           style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
-                          color={theme.COLORS.WHITE}
+                          color={theme.COLORS.BLACK}
                       >
                           -
                       </Text>
@@ -351,7 +351,12 @@ class Programming extends React.Component {
                 </Block>
   }
               <Block style={{marginBottom:  10}}></Block>
-                            <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
+                            
+              </Block>
+              
+            </Block>
+          </Block>
+          <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
                             { (currentState > 0 && currentState < 3) ?
                             <GaButton
                                   shadowless
@@ -382,10 +387,6 @@ class Programming extends React.Component {
                             : <Block />}
                             </Block>
               
-              </Block>
-              
-            </Block>
-          </Block>
         </Modal>);
   }
   render () {
@@ -401,7 +402,7 @@ class Programming extends React.Component {
           {this.renderModal()}
           <Block row style={{zIndex: 3, position: 'absolute', top: 500, right: '5%'}}>
         {(this.state.isNew && this.state.remainQuantity == 0) ?
-        <block />
+        <Block />
           :
         <FloatingActionButton
           iconName="plus"
