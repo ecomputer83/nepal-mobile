@@ -128,7 +128,13 @@ const IndicatorStyles = {
                //perform logic
                if(this.state.TotalAmount != 0) {
                 this.setState({
-                  spinner: true
+                  spinner: true,depot: null,
+                  product : null,
+                  productIndex: null,
+                  depotIndex: null,
+                  quantity: "33000",
+                  unitPrice: null,
+                  TotalAmount: "0"
                 });
                 setTimeout(() => {
                   this.setState({ spinner: false, CompletePayment: true});
@@ -206,13 +212,7 @@ const IndicatorStyles = {
 
       proceedToPayment = () => {
           let currentPosition = 0
-            this.setState({currentPosition: currentPosition,depot: null,
-              product : null,
-              productIndex: null,
-              depotIndex: null,
-              quantity: "33000",
-              unitPrice: null,
-              TotalAmount: "0"})
+            this.setState({currentPosition: currentPosition})
           this.setModalCreateVisible(false);
           this.setModalPaymentVisible(true);
       }
