@@ -143,13 +143,6 @@ const IndicatorStyles = {
       }
 
       saveandnavigate = () => {
-        this.setState({currentPosition: currentPosition,depot: null,
-          product : null,
-          productIndex: null,
-          depotIndex: null,
-          quantity: "33000",
-          unitPrice: null,
-          TotalAmount: "0"})
           this.setModalPaymentVisible(false);
           this.setModalCreateVisible(false);
             this.props.navigation.navigate('Programming', { isNew: true, quantity: this.state.quantity})
