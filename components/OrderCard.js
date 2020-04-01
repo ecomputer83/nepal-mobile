@@ -82,7 +82,7 @@ export default class OrderCard extends React.Component {
                  ₦{item.Price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                   </Text>
                   <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', color: '#B4B4B4' }} size={12}>
-                    Order qty: {item.Quantity.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+                    Order qty: {item.Quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                   </Text>
                 </Block>
                 </Block>
