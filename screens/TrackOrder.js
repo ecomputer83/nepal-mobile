@@ -81,6 +81,9 @@ const IndicatorStyles = {
       })
   }
     setModalCreateVisible(visible) {
+      if(visible){
+        this.setState({quantity: "33000"})
+      }
         this.setState({modalCreateVisible: visible});
       }
 
@@ -132,7 +135,6 @@ const IndicatorStyles = {
                   product : null,
                   productIndex: null,
                   depotIndex: null,
-                  quantity: "33000",
                   unitPrice: null,
                   TotalAmount: "0"
                 });
