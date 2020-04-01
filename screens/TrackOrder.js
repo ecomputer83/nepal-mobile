@@ -38,7 +38,7 @@ const IndicatorStyles = {
     currentStepLabelColor: '#E37E2E'
   }
 
-class TrackOrder extends React.Component {
+  class TrackOrder extends React.Component {
     
     state = {
         Filters: prod.Filters,
@@ -53,7 +53,7 @@ class TrackOrder extends React.Component {
         product : null,
         productIndex: null,
         depotIndex: null,
-        quantity: "0",
+        quantity: "33000",
         unitPrice: null,
         TotalAmount: "0",
         PhoneNumber: '',
@@ -89,12 +89,12 @@ class TrackOrder extends React.Component {
       }
 
       setIncrease(){
-        var quantity = parseInt(this.state.quantity) + 100
+        var quantity = parseInt(this.state.quantity) + 1000
         this.setState({quantity: quantity.toString(), ifInputupdated: true})
       }
 
       setDecrease(){
-        var quantity = parseInt(this.state.quantity) - 100
+        var quantity = parseInt(this.state.quantity) - 1000
         this.setState({quantity: quantity.toString(), ifInputupdated: true})
       }
 
@@ -102,12 +102,16 @@ class TrackOrder extends React.Component {
         this.setState({ currentPosition: position })
       }
       Next(last){
+        let ifup = false;
           if(last){
               var TotalAmount = this.state.quantity * this.state.product.Price;
               this.setState({TotalAmount: TotalAmount})
           }
         var currentPosition = this.state.currentPosition + 1
-        this.setState({currentPosition: currentPosition, ifInputupdated: false})
+        if(currentPosition == 2){
+          ifup = true
+        }
+        this.setState({currentPosition: currentPosition, ifInputupdated: ifup})
       }
 
       _checkCode = (code) => {
@@ -176,13 +180,13 @@ class TrackOrder extends React.Component {
     }
 
     renderProducts = () => {
-      let bgColor = ["#303E4F", "#437FB4", "#909090", "#CB582D", "#E37E2E"]
+      let bgColor = ["#303E4F", "#437FB4", "#909090", "#909090", "#E37E2E"]
         return prod.DailyPrices.map((p, i)=>{
-            const productStyle = [styles.product, {backgroundColor: bgColor[i]}, (this.state.productIndex == i) && styles.selected]
+            const productStyle = [styles.product, (this.state.productIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>
                 <Block width={width * 0.9} row space='between' style={productStyle}>
-                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Product}</Text>
-                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#AAAAAA' }}>₦{p.Price}/{p.Unit}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, }}>{p.Product}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#333333' }}>₦{p.Price}/{p.Unit}</Text>
                 </Block>
             </TouchableHighlight>)
         })
@@ -194,7 +198,7 @@ class TrackOrder extends React.Component {
             const productStyle = [styles.product, (this.state.depotIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setDepot(p, i)}>
                 <Block width={width * 0.9} middle style={productStyle}>
-                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Name}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{p.Name}</Text>
                 </Block>
             </TouchableHighlight>)
         })
@@ -233,11 +237,7 @@ class TrackOrder extends React.Component {
               transparent={false}
               visible={this.state.modalCreateVisible}
               onRequestClose={() => {
-                if(this.state.currentPosition > 0){
-                this.setState({currentPosition: this.state.currentPosition - 1})
-                }else{
-                  this.setModalCreateVisible(false)
-                }
+                this.setModalCreateVisible(false)
               }}>
               <Block  flex center style={{backgroundColor: '#FAFAFA'}}>
                 <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
@@ -263,23 +263,23 @@ class TrackOrder extends React.Component {
                   <Block>
                   { (currentPosition == 0) ?
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-                                <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Where Do you want to Load from?</Text>
+                                <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Where do you want to load from?</Text>
                                     {this.renderDepots()}
                                 </Block>
                   : (currentPosition == 1) ?
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-                  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What Product Do you want to buy?</Text>  
+                  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What product do you want to buy?</Text>  
                         {this.renderProducts()}
                                   
                                 </Block>
                   : (currentPosition == 2)   ?             
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-      <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>WHAT QUANTITY DO YOU WANT TO BUY?</Text>
+      <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
           <Block row>
           <GaButton
                           shadowless
                           style={styles.increbutton}
-                          color='#4161A1'
+                          color={nowTheme.COLORS.BACKGROUND}
                           onPress={() => this.setIncrease()}
                       >
                           <Text
@@ -303,8 +303,8 @@ class TrackOrder extends React.Component {
   
   <GaButton
                           shadowless
-                          style={styles.increbutton}
-                          color='#D9D9D9'
+                          style={[styles.increbutton, {opacity: 0.35}]}
+                          color='#23C9F135'
                           onPress={() => this.setDecrease()}
                       >
                           <Text
@@ -322,6 +322,7 @@ class TrackOrder extends React.Component {
       <Input
                     left
                     color="black"
+                    placeholder="Enter code here"
                     style={styles.custominput}
                     noicon
                 />
@@ -329,13 +330,14 @@ class TrackOrder extends React.Component {
       <Input
                     left
                     color="black"
+                    placeholder="Enter code here"
                     style={styles.custominput}
                     noicon
                 />
 
                         <Block center style={{width: (width * 0.9), marginTop: 25, padding: 10, backgroundColor: '#121112'}}>
                     <Text style={{fontSize: 14, lineHeight: 16, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>₦{TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
-                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{quantity} Litres</Text>
+                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres</Text>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{product.Product} (ex Nepal Depot {depot.Name})</Text>
                     <TouchableHighlight onPress={() => this.edit()}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15}}>Edit</Text></TouchableHighlight>
 
@@ -343,7 +345,13 @@ class TrackOrder extends React.Component {
                     </Block>
                     : 
                     <Block middle width={width * 0.9} style={{ marginBottom: 5 }}>
-                      <Block width={47} height={47} style={{ backgroundColor: '#121112', marginBottom: 13, marginTop: 33, borderRadius: 50}}>
+                      <Block width={47} height={47} style={{ backgroundColor: nowTheme.COLORS.BACKGROUND, marginBottom: 13, marginTop: 33, borderRadius: 50, alignItems: 'center', justifyContent: 'center'}}>
+                      <Icon
+                          name={'check'}
+                          family="octicon"
+                          size={20}
+                          color={nowTheme.COLORS.WHITE}
+                      />
                       </Block>
 
                       <Text style={{fontSize: 14, lineHeight: 24, fontFamily: 'ProductSans-Bold', textAlign: 'center'}}>Congratulations! Your Order has been submitted Successfully.</Text>
@@ -354,7 +362,7 @@ class TrackOrder extends React.Component {
                     
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Order Quantity:</Text>
-                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{quantity} Litres</Text>
+                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres</Text>
                     </Block>
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>List Unit Price:</Text>
@@ -381,7 +389,7 @@ class TrackOrder extends React.Component {
                     </Block>
       }
                   <Block style={{marginBottom:  10, marginTop: 20}}></Block>
-                                <Block width={width * 0.7} center>
+                                <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
                                 { (currentPosition < 2) ?
                                 <GaButton
                                       shadowless
@@ -470,7 +478,7 @@ class TrackOrder extends React.Component {
                                           style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
                                           color={theme.COLORS.WHITE}
                                       >
-                                          PROCEED TO PAYMENT
+                                          Proceed To Payment
                                       </Text>
                                   </GaButton>
                                 </Block>) : (<Block />)}
@@ -485,11 +493,7 @@ class TrackOrder extends React.Component {
               transparent={false}
               visible={this.state.modalPaymentVisible}
               onRequestClose={() => {
-                if(this.state.currentState > 0){
-                  this.setState({currentState: this.state.currentState - 1})
-                  }else{
-                    this.setModalPaymentVisible(false)
-                  }
+                this.setModalPaymentVisible(false);
               }}>
             { (!CompletePayment) ?  
               <Block  flex center style={{backgroundColor: '#FAFAFA'}}>
@@ -633,7 +637,7 @@ class TrackOrder extends React.Component {
                                           style={{ fontFamily: 'ProductSans-Medium', fontSize: 15 }}
                                           color={theme.COLORS.WHITE}
                                       >
-                                          Program my Truck
+                                          Program truck loading
                                       </Text>
                                 </GaButton>
                                 <TouchableHighlight onPress={() => this.backHome()}>
@@ -702,7 +706,7 @@ class TrackOrder extends React.Component {
         )
     }
 
-}
+  }
 
 const styles = StyleSheet.create({
     search: {

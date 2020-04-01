@@ -15,13 +15,13 @@ export default class Onboarding extends React.Component {
         <StatusBar barStyle="light-content" />
         <Block flex>
           <Block middle>
-                <Image source={Images.Logo} style={{ width: 262, height: 63 }} />
+                <Image source={Images.Logo} style={{ width: 262, height: 63, marginTop: 125}} />
               </Block>
           <Block space="between" style={styles.padded}>
             <Block>
               
             <Block>
-            <Text size={22} style={{marginBottom:10, paddingLeft: 20, fontFamily: 'HKGrotesk-Bold'}}>
+            <Text size={22} style={{marginBottom:10, textAlign: 'center', fontFamily: 'HKGrotesk-Bold'}}>
             Welcome to NEPAL Oil & Gas Mobile
             </Text>
             </Block>
@@ -30,7 +30,7 @@ export default class Onboarding extends React.Component {
               <Block
               
                 style={{
-                  marginTop: theme.SIZES.BASE * 3.5,
+                  marginTop: theme.SIZES.BASE * 2.0,
                   marginBottom: theme.SIZES.BASE * 2
                 }}
               >
@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === 'android' ? 0 : 0
   },
   padded: {
-    marginTop: 163
+    marginTop: 103
   },
   button: {
     width: width - theme.SIZES.BASE * 4,

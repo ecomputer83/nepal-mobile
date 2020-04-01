@@ -1,6 +1,6 @@
 export default [
   {
-    title: 'Nepal Energy truck park in Oghara is now open',
+    title: 'NEPAL Launches Customer Loyalty Program in Oghara',
     image: require("../assets/imgs/Image1.png"),
     body:
       'Lorem Ipsum is the industry standard for placeholder and typesetting text. It was founded in the 1900 when Lorem Franklin was trying to create a mock up for one of his numerous…',
@@ -18,7 +18,7 @@ export default [
       'Lorem Ipsum is the industry standard for placeholder and typesetting text. It was founded in the 1900 when Lorem Franklin was trying to create a mock up for one of his numerous…',
   },
   {
-    title: 'Nepal Energy truck park in Oghara is now open',
+    title: 'NEPAL Launches Customer Loyalty Program in Oghara',
     image: require("../assets/imgs/Image1.png"),
     body:
       'Lorem Ipsum is the industry standard for placeholder and typesetting text. It was founded in the 1900 when Lorem Franklin was trying to create a mock up for one of his numerous…',

@@ -37,12 +37,12 @@ export default class Login extends React.Component {
           <Block space="between" style={styles.padded}>
             <Block>
             <Block>
-            <Text size={28} style={{marginLeft: 21, marginBottom:10, fontFamily: 'HKGrotesk-Bold'}}>
+            <Text size={28} style={{marginLeft: 21, marginBottom:5, fontFamily: 'HKGrotesk-Bold'}}>
             Log In to continue
             </Text>
             </Block>
               <Block style={{
-                  marginTop: theme.SIZES.BASE * 1.5, marginLeft:20
+                  marginTop: theme.SIZES.BASE, marginLeft:20
                 }}>
                 <Block style={{marginVertical: 2.5}}>
                 <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>

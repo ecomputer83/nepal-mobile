@@ -59,7 +59,7 @@ export default class FeatureCard extends React.Component {
                   fontFamily: 'HKGrotesk-SemiBoldLegacy',
                 }}
               >
-                {item.Quantity} Litres
+                {item.Quantity.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres
                   </Text>
                 </Block>
                   </Block>

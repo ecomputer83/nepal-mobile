@@ -57,7 +57,7 @@ class Insight extends React.Component {
             </Block>
             <Block row space='between' style={{ width: width-123, alignItems: 'center'}}>
                 <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.Name}</Text>
-                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.Quantity}</Text>
+                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.Quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
             </Block>
         </Block>
         )

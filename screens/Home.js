@@ -31,13 +31,14 @@ class Home extends React.Component {
   }
 
   loadPrices = () => {
+    let bgColor = ["#303E4F", "#437FB4", "#909090", "#F6D843E6", "#EE0E1D"]
     return this.state.DailyPrices.map((s,i) => {
         return (<Block style={{paddingTop: 10,
           paddingBottom: 10, paddingRight: 35,
           paddingLeft: 15, margin: 5, backgroundColor: "#ffffff"}}>
           <Text
                 style={{
-                  color: nowTheme.COLORS.BLACK,
+                  color: bgColor[i],
                   fontSize: 14,
                   fontFamily: 'HKGrotesk-Light',
                   lineHeight: 20,
@@ -73,7 +74,7 @@ class Home extends React.Component {
     return (
       <Block>
         <Block style={{ margin: 10 }}>
-        <Text style={{ fontFamily: 'HKGrotesk-SemiBold', fontSize: 14 }} color={theme.COLORS.DEFAULT}>
+        <Text style={{ fontFamily: 'HKGrotesk-SemiBold', fontSize: 14 }} color='#CB582D'>
             NEWS HIGHLIGHTS
         </Text>
         </Block>
@@ -89,7 +90,7 @@ class Home extends React.Component {
     return (<Block style={{backgroundColor: '#FAFAFA'}}>
       <Block row space="between" style={{padding: 10}}>
       <Block>
-        <Text style={{ fontFamily: 'HKGrotesk-Light', fontSize: 14 }} color={theme.COLORS.DEFAULT}>
+        <Text style={{ fontFamily: 'HKGrotesk-Light', fontSize: 14 }} color='#CB582D'>
             TODAY'S PRICES
         </Text>
       </Block>
@@ -105,6 +106,11 @@ class Home extends React.Component {
             </Picker>
       </Block>
       {this.renderPrices()}
+      <Block style={{margin: 5, padding: 5, backgroundColor: "#ffffff"}}>
+      <Text style={{ fontFamily: 'HKGrotesk-SemiBold', fontSize: 14, textAlign: 'center' }}>
+            Want a price offer? Call +234 NEPAL SALES
+        </Text>
+      </Block>
       {this.renderArticles()}
     </Block>);
   }
@@ -129,7 +135,7 @@ const styles = StyleSheet.create({
 
   selectBox: {
     width: 222,
-    height: 19,
+    height: 23,
     color: nowTheme.COLORS.PRIMARY,
     textTransform: 'uppercase',
     fontFamily: 'HKGrotesk-Bold',

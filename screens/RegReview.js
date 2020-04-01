@@ -1,7 +1,7 @@
 import React from 'react';
 import { ImageBackground, Image, StyleSheet, StatusBar, Dimensions, Platform, TouchableHighlight } from 'react-native';
 import { Block, Button, Text, theme } from 'galio-framework';
-
+import { Icon } from '../components';
 const { height, width } = Dimensions.get('screen');
 import { Images, nowTheme } from '../constants';
 import { HeaderHeight } from '../constants/utils';
@@ -14,14 +14,17 @@ export default class Onboarding extends React.Component {
       <Block flex style={styles.container}>
         <StatusBar barStyle="light-content" />
         <Block flex>
-          <Block middle>
-                <Image source={Images.Logo} style={{ width: 262, height: 63 }} />
-              </Block>
           <Block space="between" style={styles.padded}>
             <Block>
               
             <Block middle style={{marginBottom: 10}}>
-            <Block width={47} height={47} style={{ backgroundColor: '#121112', marginBottom: 13, marginTop: 33, borderRadius: 50}}>
+            <Block width={47} height={47} style={{ backgroundColor: nowTheme.COLORS.BACKGROUND, marginBottom: 13, marginTop: 33, borderRadius: 50, alignItems: 'center', justifyContent: 'center'}}>
+                      <Icon
+                          name={'check'}
+                          family="octicon"
+                          size={20}
+                          color={nowTheme.COLORS.WHITE}
+                      />
                       </Block>
 
                       
@@ -53,7 +56,7 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === 'android' ? 0 : 0
   },
   padded: {
-    marginTop: 123,
+    marginTop: 163,
     marginHorizontal: 20
   },
   button: {
