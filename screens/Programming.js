@@ -5,7 +5,7 @@ import { Input, Icon, DetailCard, FeatureCard } from '../components';
 import FloatingActionButton from "react-native-floating-action-button";
 import { prod, ST, nowTheme } from '../constants';
 import Spinner from 'react-native-loading-spinner-overlay';
-
+import ModalSelector from 'react-native-modal-selector';
 const { width, height } = Dimensions.get("screen");
 class Programming extends React.Component {
 
@@ -281,27 +281,23 @@ class Programming extends React.Component {
                                 numberOfLines={3}
                                 noicon
                               />
-                              <Block style={styles.picker}>
-                              <Picker
-                                  selectedValue={this.state.State }
-                                  style={styles.pickerStyle}
-                                  onValueChange={(itemValue, itemIndex) => this.setStates(itemValue)}>
-                                      <Picker.Item label='-- Select State --' value={null} />
-                                      {ST.States.map( (v)=>{
-                                      return <Picker.Item label={v.Name} value={v}  />
-                                      })}
-                              </Picker>
+                             <Block style={styles.picker}>
+                              <ModalSelector
+                                  data={this.state.StateX}
+                                  initValue='Select State'
+                                  selectStyle={styles.selectStyle}
+                                  selectTextStyle={styles.selectTextStyle}
+                                  initValueTextStyle={styles.initvalueTextStyle}
+                                  onChange={(itemValue) => this.setStates(itemValue)} />
                               </Block>
                               <Block style={styles.picker}>
-                              <Picker
-                                  selectedValue={this.state.LGA }
-                                  style={styles.pickerStyle}
-                                  onValueChange={(itemValue, itemIndex) => this.setLGA(itemValue)}>
-                                      <Picker.Item label='-- Select LGA --' value={null} />
-                                      {LGAs.map( (v)=>{
-                                      return <Picker.Item label={v.Name} value={v}  />
-                                      })}
-                              </Picker>
+                              <ModalSelector
+                                  data={this.state.LGAs }
+                                  initValue='Select LGA'
+                                  selectStyle={styles.selectStyle}
+                                  selectTextStyle={styles.selectTextStyle}
+                                  initValueTextStyle={styles.initvalueTextStyle}
+                                  onChange={(itemValue) => this.setLGA(itemValue)} />
                               </Block>
                               
                             </Block>
@@ -451,10 +447,19 @@ const styles = StyleSheet.create({
     height: 45,
     marginBottom: 10
   },
-  pickerStyle: {
+  initvalueTextStyle: {
     fontFamily: 'HKGrotesk-Regular',
     fontSize: 16,
     color: '#191718',
+    justifyContent: 'center',  
+  },
+  selectTextStyle: {
+    fontFamily: 'HKGrotesk-Regular',
+    fontSize: 10,
+    color: '#191718',  
+  },
+  selectStyle: {
+    borderWidth: 0,
     justifyContent: 'center',  
   },
   product: {

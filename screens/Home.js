@@ -2,8 +2,9 @@ import React from "react";
 import { StyleSheet, ScrollView, Dimensions, Picker, FlatList} from "react-native";
 import { Block, theme, Text, Button } from "galio-framework";
 import { white } from "color-name";
-import {Card } from "../components";
+import {Card, Icon } from "../components";
 import {prod, Article, nowTheme} from "../constants";
+import ModalSelector from 'react-native-modal-selector';
 
 const { width, height } = Dimensions.get("screen");
 const ratio = width / height;
@@ -94,16 +95,21 @@ class Home extends React.Component {
             TODAY'S PRICES
         </Text>
       </Block>
-      <Picker
-          style={styles.selectBox}
-          selectedValue={this.state.depot }
-          onValueChange={(itemValue, itemIndex) => this.pickerDepot(itemIndex)}>
-            {
-                prod.Depots.map( (v)=>{
-                  return <Picker.Item label={v.Name} value={v}  />
-                })
-            }
-            </Picker>
+      <Block row>
+      <ModalSelector
+          data={this.state.depotX}
+          initValue={this.state.depot.Name}
+          selectStyle={styles.picker}
+          selectTextStyle={styles.selectTextStyle}
+          initValueTextStyle={styles.initvalueTextStyle}
+          onChange={(itemValue) => this.pickerDepot(itemValue.key)} />
+        <Icon
+              name={'chevron-down'}
+              family="octicon"
+              size={14}
+              color={nowTheme.COLORS.ICON}
+            />
+      </Block>
       </Block>
       {this.renderPrices()}
       <Block style={{margin: 5, padding: 5, backgroundColor: "#ffffff"}}>
@@ -132,7 +138,24 @@ const styles = StyleSheet.create({
     shadowRadius: 0,
     shadowOpacity: 0,
   },
-
+  picker: {
+    borderWidth: 0,
+    height: 23,
+    width: 100,
+    padding: 0
+  },
+  selectTextStyle: {
+    fontFamily: 'HKGrotesk-Bold',
+    fontSize: 14,
+    color: nowTheme.COLORS.PRIMARY,
+    textTransform: 'uppercase', 
+  },
+  initvalueTextStyle: {
+    fontFamily: 'HKGrotesk-Bold',
+    fontSize: 14,
+    color: nowTheme.COLORS.PRIMARY,
+    textTransform: 'uppercase', 
+  },
   selectBox: {
     width: 222,
     height: 23,
