@@ -7,6 +7,8 @@ import { prod, ST, nowTheme } from '../constants';
 import Spinner from 'react-native-loading-spinner-overlay';
 import ModalSelector from 'react-native-modal-selector';
 const { width, height } = Dimensions.get("screen");
+const iPhoneX = () =>
+  Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896);
 class Programming extends React.Component {
 
   state = {
@@ -88,8 +90,8 @@ constructor(props) {
     }
 
     setStates(v){
-      var LGAs = ST.LGA.filter(c=>c.stateIndex == v.index).map(l => {
-        return {key: o.index, label: o.Name}
+      var LGAs = ST.LGA.filter(c=>c.stateIndex == v.key).map(l => {
+        return {key: l.index, label: l.Name}
       });
       this.setState({LGAs: LGAs, State: v, ifInputupdated: (this.state.LGA && this.state.Destination)})
     }
@@ -234,7 +236,7 @@ constructor(props) {
                 this.setModalVisible(false)
               }
           }}>
-          <Block  flex center style={{backgroundColor: '#FAFAFA'}}>
+          <Block  flex center style={{backgroundColor: '#FAFAFA', paddingTop: iPhoneX() ? theme.SIZES.BASE * 3.5 : theme.SIZES.BASE }}>
             <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
               <Text style={{ fontFamily: 'HKGrotesk-Bold', fontSize: 20 }}>Program Truck</Text>
               <Icon
@@ -404,7 +406,7 @@ constructor(props) {
           {this.renderFeatures()}
           {this.renderPrograms()}
           {this.renderModal()}
-          <Block row style={{zIndex: 3, position: 'absolute', top: 500, right: '5%'}}>
+          <Block row style={{zIndex: 3, position: 'absolute', top: '70%', right: '5%'}}>
         {(this.state.isNew && this.state.remainQuantity == 0) ?
         <Block />
           :
@@ -463,7 +465,7 @@ const styles = StyleSheet.create({
   },
   selectTextStyle: {
     fontFamily: 'HKGrotesk-Regular',
-    fontSize: 10,
+    fontSize: 16,
     color: '#191718',  
   },
   selectStyle: {
