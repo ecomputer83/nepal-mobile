@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   picker: {
     borderWidth: 0,
     height: 23,
-    width: 100,
+    width: 200,
     padding: 0
   },
   selectTextStyle: {

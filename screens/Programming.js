@@ -9,65 +9,71 @@ import ModalSelector from 'react-native-modal-selector';
 const { width, height } = Dimensions.get("screen");
 class Programming extends React.Component {
 
-    state = {
-        totalquantity: 0,
-        remainQuantity: 0,
-        programs: [],
-        TruckNo: null,
-        Quantity: "33000",
-        Destination: null,
-        State: null,
-        LGA: null,
-        modalVisible: false,
-        spinner: false,
-        currentState: 0,
-        isNew: false,
-        ifInputupdated: false,
-        LGAs: []
-    }
+  state = {
+    totalquantity: 0,
+    remainQuantity: 0,
+    programs: [],
+    TruckNo: null,
+    Quantity: "33000",
+    Destination: null,
+    State: null,
+    StateX: [],
+    LGA: null,
+    modalVisible: false,
+    spinner: false,
+    currentState: 0,
+    isNew: false,
+    ifInputupdated: false,
+    LGAs: []
+}
 
-    constructor(props) {
-      super(props);
-      const Params = props.navigation.state.params
-      console.log(Params)
-      if(Params == null){
+constructor(props) {
+  super(props);
+  const Params = props.navigation.state.params
+  console.log(Params)
+  var SX = ST.States.map(o => {
+    return {key: o.index, label: o.Name}
+  })
+  if(Params == null){
 
 
-      this.state = {
-          totalquantity: prod.Orders.map(o=>o.Quantity).reduce((a,c)=>a+c),
-          remainQuantity: 0,
-          programs: this.getPrograms(),
-          TruckNo: null,
-        Quantity: "0",
-      Destination: null,
-      State: null,
-      LGA: null,
-      modalVisible: false,
-      spinner: false,
-      currentState: 0,
-      isNew: false,
-      ifInputupdated: false,
-      LGAs: []
-      }
-    }else{
-      this.state = {
-        totalquantity: Params.quantity,
-        remainQuantity: Params.quantity,
-        programs: [],
-        TruckNo: null,
-        Quantity: "0",
-      Destination: null,
-      State: null,
-      LGA: null,
-      modalVisible: false,
-      spinner: false,
-      currentState: 1,
-      ifInputupdated: false,
-      LGAs: [],
-      isNew: Params.isNew
-    }
-    }
-    }
+  this.state = {
+      totalquantity: prod.Orders.map(o=>o.Quantity).reduce((a,c)=>a+c),
+      remainQuantity: 0,
+      programs: this.getPrograms(),
+      TruckNo: null,
+    Quantity: "0",
+  Destination: null,
+  State: null,
+  StateX: SX,
+  LGA: null,
+  modalVisible: false,
+  spinner: false,
+  currentState: 0,
+  isNew: false,
+  ifInputupdated: false,
+  LGAs: []
+  }
+}else{
+  this.state = {
+    totalquantity: Params.quantity,
+    remainQuantity: Params.quantity,
+    programs: [],
+    TruckNo: null,
+    Quantity: "0",
+  Destination: null,
+  State: null,
+  StateX: SX,
+  LGA: null,
+  modalVisible: false,
+  spinner: false,
+  currentState: 1,
+  ifInputupdated: false,
+  LGAs: [],
+  isNew: Params.isNew
+}
+}
+}
     setModalVisible(visible) {
       this.setState({modalVisible: visible});
     }
@@ -82,7 +88,9 @@ class Programming extends React.Component {
     }
 
     setStates(v){
-      var LGAs = ST.LGA.filter(c=>c.stateIndex == v.index);
+      var LGAs = ST.LGA.filter(c=>c.stateIndex == v.index).map(l => {
+        return {key: o.index, label: o.Name}
+      });
       this.setState({LGAs: LGAs, State: v, ifInputupdated: (this.state.LGA && this.state.Destination)})
     }
 
