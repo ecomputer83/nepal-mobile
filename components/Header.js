@@ -37,6 +37,7 @@ class Header extends React.Component {
       Limit: 0,
       Balance: 0,
       ipman: 0,
+      ipmancode: '',
       isfetched: false
     }
 
@@ -109,6 +110,7 @@ class Header extends React.Component {
         Limit: user.limit,
         Balance: user.balance,
         ipman: user.ipman,
+        ipmancode: user.ipmancode,
         isfetched: true
         })
       }
@@ -131,6 +133,9 @@ class Header extends React.Component {
             {this.state.ipman == 1 ? 
             (
               <Block>
+                <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+              IPMAN Code #: {this.state.ipmancode}
+            </Text>
               <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: Theme.COLORS.HEADER}}>
               Credit limit ₦{this.state.Limit.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
             </Text>
