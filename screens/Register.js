@@ -13,7 +13,8 @@ const DismissKeyboard = ({ children }) => (
 );
 export default class Login extends React.Component {
   state = {
-    phoneNumber: ''
+    phoneNumber: '',
+    viewstate: 1
   }
   handleLeftPress = () => {
     const { navigation } = this.props;
@@ -21,7 +22,7 @@ export default class Login extends React.Component {
   };
   render() {
     const { navigation } = this.props;
-    const { phoneNumber } = this.state;
+    const { phoneNumber, viewstate } = this.state;
 
     return (
       <DismissKeyboard>
@@ -37,6 +38,99 @@ export default class Login extends React.Component {
               color={nowTheme.COLORS.ICON}
             />
           </Block>
+          {(viewstate == 3)  ?
+            this.renderRegForm()
+          : (viewstate == 2) ?
+            this.renderIPMANCode()
+          :
+            this.renderIPMAN()
+          }
+        </Block>
+        </Block>
+      </DismissKeyboard>
+    );
+  }
+  renderIPMAN = () => {
+    return (
+      <Block flex style={{width: width, marginLeft: 10, marginTop: 100}}>
+        <Block space="between" > 
+          <Block>
+            <Text size={24} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: nowTheme.COLORS.BLACK, textAlign: 'center'}}>
+              Do you have IPMAN membership?
+            </Text>
+            <Block row style={{ marginTop: 20}}>
+                <Button
+                  shadowless
+                  style={styles.yesbutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setState({viewstate: 2})}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    Yes
+                  </Text>
+                </Button>
+                <Button
+                  shadowless
+                  style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setState({viewstate: 3})}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    No
+                  </Text>
+                </Button>
+                </Block>
+          </Block>
+          </Block>
+      </Block>
+    );
+  }
+
+  renderIPMANCode = () => {
+    return (
+      <Block flex style={{width: width, marginTop: 100}}>
+        <Block space="between" > 
+          <Block>
+            <Text size={22} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: nowTheme.COLORS.BLACK, textAlign: 'center'}}>
+            Enter your IPMAN Membership Code
+            </Text>
+      <Input
+                    left
+                    color="black"
+                    placeholder="Enter code here"
+                    style={styles.codeinput}
+                    noicon
+                />
+           <Block style={{ marginTop: 20}}>
+                <Button
+                  shadowless
+                  style={styles.button}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setState({viewstate: 3})}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    Continue
+                  </Text>
+                </Button>
+                </Block>
+                </Block>
+          </Block>
+      </Block>
+    );
+  }
+  renderRegForm =() => {
+    const { navigation } = this.props;
+    const { phoneNumber, viewstate } = this.state;
+    return (
           <ScrollView>
           <Block space="between" style={styles.padded}>
             <Block>
@@ -174,9 +268,6 @@ export default class Login extends React.Component {
             </Block>
           </Block>
           </ScrollView>
-        </Block>
-      </Block>
-      </DismissKeyboard>
     );
   }
 }
@@ -208,6 +299,15 @@ const styles = StyleSheet.create({
     borderRadius: 0,
     paddingLeft: 10
   },
+  codeinput: {
+    borderColor: nowTheme.COLORS.BORDER,
+    borderWidth: 1,
+    height: 38,
+    width:  width - 42,
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 0
+  },
   loginbutton: {
     width: (width /2) - (theme.SIZES.BASE * 2 + 2.5),
     height: theme.SIZES.BASE * 3,
@@ -217,7 +317,22 @@ const styles = StyleSheet.create({
   },
 
   registerbutton: {
-    width: (width /2) - (theme.SIZES.BASE * 2 + 2.5),
+    width: (width /3) - (theme.SIZES.BASE * 2 + 2.5),
+    height: theme.SIZES.BASE * 3,
+    shadowRadius: 0,
+    shadowOpacity: 0,
+  },
+  yesbutton: {
+    width: (width /3) - (theme.SIZES.BASE * 2 + 2.5),
+    height: theme.SIZES.BASE * 3,
+    shadowRadius: 0,
+    shadowOpacity: 0,
+    marginRight: 140,
+    marginLeft: 20
+  },
+
+  nobutton: {
+    width: (width /3) - (theme.SIZES.BASE * 2 + 2.5),
     height: theme.SIZES.BASE * 3,
     shadowRadius: 0,
     shadowOpacity: 0,

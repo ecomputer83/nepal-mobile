@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet,  Dimensions, Image, Alert, FlatList, Modal, View, TouchableHighlight  } from 'react-native';
+import { StyleSheet,  Dimensions, Image, Alert, FlatList, Modal, View, TouchableHighlight } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage'
 import { Block, theme,Button as GaButton, Text } from "galio-framework";
 import {OrderCard, Input, Icon } from "../components";
 import { prod, Images, nowTheme } from '../constants';
@@ -59,9 +60,19 @@ const IndicatorStyles = {
         TotalAmount: "0",
         PhoneNumber: '',
         code: '',
-        ifInputupdated: false
+        ifInputupdated: false,
+        Name: 'Business Name',
+      Limit: 0,
+      Balance: 0,
+      ipman: 0,
+      isnoteligible: false,
+      isfetched: false
     }
     pinInput = React.createRef();
+
+    readData = async () => {
+      return await AsyncStorage.getItem('@UserId');
+    }
     pickerProduct(index){
         prod.DailyPrices.map( (v,i)=>{
          if( index === i ){
@@ -107,11 +118,18 @@ const IndicatorStyles = {
       }
       Next(last){
         let ifup = false;
+        var currentPosition = this.state.currentPosition
           if(last){
               var TotalAmount = this.state.quantity * this.state.product.Price;
               this.setState({TotalAmount: TotalAmount})
           }
-        var currentPosition = this.state.currentPosition + 1
+          console.log(this.state.ipman)
+        if(last && this.state.ipman == 1){
+          
+          currentPosition = this.state.currentPosition + 2
+        }else {
+          currentPosition = this.state.currentPosition + 1
+        }
         if(currentPosition == 2){
           ifup = true
         }
@@ -156,6 +174,18 @@ const IndicatorStyles = {
           this.setModalCreateVisible(false);
             this.props.navigation.navigate('Programming', { isNew: true, quantity: this.state.quantity})
     }
+    requestcredit = () => {
+      if(this.state.Balance >= parseInt(this.state.TotalAmount)){
+        this.setModalPaymentVisible(false);
+        this.setModalCreateVisible(false);
+      
+        Alert.alert("Credit Request", "Credit request has been submited for approval")
+      }
+      else {
+        this.setState({isnoteligible: true})
+        Alert.alert("Credit Request", "You have insufficient credit balance to proceed, Kindly make payment")
+      }
+}
     backHome = () => {
         this.setModalPaymentVisible(false);
           this.props.navigation.navigate('Home')
@@ -239,8 +269,23 @@ const IndicatorStyles = {
 
 
       renderCreateModal = () => {
-
+        if(!this.state.isfetched){
+        this.readData().then( userid => {
+          if(userid !== null){
+            
+            var user = prod.Users.find(u => u.UserId == parseInt(userid))
+            console.log(user.ipman)
+            this.setState({Name: user.CompanyName,
+            Limit: user.limit,
+            Balance: user.balance,
+            ipman: user.ipman,
+            isfetched: true
+            })
+          }
+        });
+        }
         const {currentPosition, unitPrice, TotalAmount, product, depot, quantity, ifInputupdated} = this.state;
+
           return (<Modal
               animationType="slide"
               transparent={false}
@@ -335,14 +380,7 @@ const IndicatorStyles = {
                     style={styles.custominput}
                     noicon
                 />
-      <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Enter your IPMAN Membership Code here</Text>
-      <Input
-                    left
-                    color="black"
-                    placeholder="Enter code here"
-                    style={styles.custominput}
-                    noicon
-                />
+      
 
                         <Block center style={{width: (width * 0.9), marginTop: 25, padding: 10, backgroundColor: '#121112'}}>
                     <Text style={{fontSize: 14, lineHeight: 16, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>₦{TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
@@ -422,19 +460,7 @@ const IndicatorStyles = {
                               </Block>)
                                : (currentPosition > 3) ? (
                                 <Block width={width * 0.9} center style={{position: 'absolute', bottom: 50}}>
-                                  <GaButton
-                                      shadowless
-                                      style={styles.button}
-                                      color={nowTheme.COLORS.PRIMARY}
-                                      onPress={() => {}}
-                                  >
-                                      <Text
-                                          style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
-                                          color={theme.COLORS.WHITE}
-                                      >
-                                          Share Order Details
-                                      </Text>
-                                  </GaButton>
+                                  {(this.state.ipman == 0) ? (
                                   <GaButton
                                       shadowless
                                       style={styles.button}
@@ -447,7 +473,21 @@ const IndicatorStyles = {
                                       >
                                           Credit Customer? Proceed to Truck programming
                                       </Text>
-                                  </GaButton>
+                                  </GaButton>) :
+                                  (<GaButton
+                                      shadowless
+                                      style={styles.button}
+                                      color={nowTheme.COLORS.PRIMARY}
+                                      onPress={() => this.requestcredit()}
+                                      disabled={this.state.isnoteligible}
+                                  >
+                                      <Text
+                                          style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 14 }}
+                                          color={theme.COLORS.WHITE}
+                                      >
+                                          Request Credit Approval
+                                      </Text>
+                                  </GaButton>)}
                                   <GaButton
                                       shadowless
                                       style={styles.button}

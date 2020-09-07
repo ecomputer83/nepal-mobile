@@ -30,4 +30,7 @@ const Orders = [{OrderId: "PO68876", Quantity: 33000, Price: 6550500.00, Product
 
  const Marketers = [{Name: "BKO Olatunde Enterprises", Quantity: 233000}, {Name: "HARTIZ Global", Quantity: 203000},{Name: "Fuel4All International", Quantity: 183000},{Name: "Olaoluwa & Sons", Quantity: 166000},{Name: "God is Good Energy Services", Quantity: 124000}]
 
- export default {DailyPrices, Depots, Orders, Filters, Marketers}
+ const Users = [{UserId: 1, CompanyName: "Company One", limit: 5000000, balance: 5000000, ipman: 1, session: true}, {UserId: 2, CompanyName: "Company Two", limit: 5000000, balance: 2680000, ipman: 1, session: false}, {UserId: 3, CompanyName: "Company Three", limit: 0, balance: 0, ipman: 0, session: false}]
+ 
+ const Logins = [{UserName: "CompanyOne", Password: "password", UserId: 1}, {UserName: "CompanyTwo", Password: "password", UserId: 2},{UserName: "CompanyThree", Password: "password", UserId: 3}]
+ export default {DailyPrices, Depots, Orders, Filters, Marketers, Users, Logins}

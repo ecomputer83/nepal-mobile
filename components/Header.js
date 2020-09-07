@@ -1,6 +1,7 @@
-import React from 'react';
+import React  from 'react';
 import { withNavigation } from 'react-navigation';
 import { ImageBackground, TouchableOpacity, StyleSheet, Image, Platform, Dimensions, StatusBar } from 'react-native';
+import AsyncStorage from '@react-native-community/async-storage'
 import { Button, Block, NavBar, Text, theme, Button as GaButton } from 'galio-framework';
 import { createIconSetFromFontello } from 'react-native-vector-icons';
 import fontelloConfig from '../config.json';
@@ -8,8 +9,7 @@ import Icon from './Icon';
 import Input from './Input';
 import Tabs from './Tabs';
 import Theme from '../constants/Theme';
-import Images from '../constants/Images';
-
+import {Images, prod} from '../constants';
 const Fontello = createIconSetFromFontello(fontelloConfig);
 const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
@@ -29,10 +29,29 @@ const AddButton = ({ isWhite, style, navigation, link, iconName }) => (
 
 class Header extends React.Component {
 
+  constructor(props) {
+    super(props);
+    this.state = {
+      Users: prod.Users,
+      Name: 'Business Name',
+      Limit: 0,
+      Balance: 0,
+      ipman: 0,
+      isfetched: false
+    }
+
+  }
+  
+  
+
   handleLeftPress = () => {
     const { back, navigation } = this.props;
     return back ? navigation.goBack() : navigation.openDrawer();
   };
+
+  readData = async () => {
+    return await AsyncStorage.getItem('@UserId');
+  }
   renderRight = () => {
     const { white, title, navigation } = this.props;
     const { routeName } = navigation.state;
@@ -79,7 +98,23 @@ class Header extends React.Component {
   };
   renderMessage = () => {
     const { navigation, User } = this.props;
-
+    if(!this.state.isfetched){
+    this.readData().then( userid => {
+      console.log('mylog' + parseInt(userid))
+      if(userid !== null){
+        
+        var user = prod.Users.find(u => u.UserId == parseInt(userid))
+        
+        this.setState({Name: user.CompanyName,
+        Limit: user.limit,
+        Balance: user.balance,
+        ipman: user.ipman,
+        isfetched: true
+        })
+      }
+    });
+  }
+    
     return (
       <Block style={styles.options}>
         <Block middle>
@@ -87,12 +122,22 @@ class Header extends React.Component {
         </Block>
         <Block row space="between" > 
           <Block>
-            <Text size={24} style={{ fontFamily: 'HKGrotesk-Bold', lineHeight: 32,fontWeight: '600', color: Theme.COLORS.HEADER}}>
+            <Text size={18} style={{ fontFamily: 'HKGrotesk-Bold', lineHeight: 22,fontWeight: '600', color: Theme.COLORS.HEADER}}>
               Good Morning,
             </Text>
-            <Text size={20} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 22,fontWeight: '300', color: Theme.COLORS.HEADER}}>
-              Business Name
+            <Text size={20} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 24,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+              {this.state.Name}
             </Text>
+            {this.state.ipman == 1 ? 
+            (
+              <Block>
+              <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+              Credit limit ₦{this.state.Limit.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+            </Text>
+            <Text size={20} style={{ fontFamily: 'HKGrotesk-Bold', lineHeight: 20,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+            ₦{this.state.Balance.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+            </Text>
+            </Block>) : (<Block />) }
             </Block>
         <Block>
           <Image source={Images.Profile} style={{ width: 56, height: 55, borderRadius: 50}} />
@@ -153,6 +198,7 @@ class Header extends React.Component {
     ];
 
     const navbarStyles = [styles.navbar, bgColor && { backgroundColor: bgColor }];
+    
 
     return (
 
@@ -240,7 +286,7 @@ const styles = StyleSheet.create({
     borderColor: Theme.COLORS.BORDER
   },
   options: {
-    marginBottom: 32,
+    marginBottom: 25,
     elevation: 4,
     width:width - 30,
     marginLeft: 15,

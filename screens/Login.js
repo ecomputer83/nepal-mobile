@@ -1,9 +1,9 @@
 import React from 'react';
 import { ImageBackground, Image, StyleSheet, StatusBar, Dimensions, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Block, Button, Text, theme } from 'galio-framework';
-
+import AsyncStorage from '@react-native-community/async-storage'
 const { height, width } = Dimensions.get('screen');
-import { Images, nowTheme } from '../constants/';
+import { prod, nowTheme } from '../constants/';
 import { HeaderHeight } from '../constants/utils';
 import Input from '../components/Input';
 import Icon from '../components/Icon';
@@ -12,11 +12,38 @@ const DismissKeyboard = ({ children }) => (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>{children}</TouchableWithoutFeedback>
 );
 export default class Login extends React.Component {
-
+  constructor(props) {
+    super(props);
+    this.state = {
+      UserName: '',
+      Password: '',
+      Logins: prod.Logins
+    }
+    
+  }
   handleLeftPress = () => {
     const { navigation } = this.props;
     return navigation.goBack(null);
   };
+
+  Login = async () => {
+    const { navigation } = this.props;
+    try {
+      var Login = this.state.Logins.find(u => u.UserName.toLowerCase() == this.state.UserName.toLowerCase() && u.Password.toLowerCase() == this.state.Password.toLowerCase())
+      console.log('user' + Login.UserId)
+      if(Login !== null) {
+      AsyncStorage.setItem(
+        '@UserId',
+        Login.UserId.toString()
+      ).then(
+        navigation.navigate('Home')
+      )
+      
+       }
+    } catch (error) {
+      // Error saving data
+    }
+  }
   render() {
     const { navigation } = this.props;
 
@@ -53,6 +80,9 @@ export default class Login extends React.Component {
                     color="black"
                     style={styles.input}
                     placeholder="Enter email here"
+                    onChangeText={(text) => {
+                      this.setState({UserName: text})
+                    }}
                     noicon
                 />
                 </Block>
@@ -65,6 +95,9 @@ export default class Login extends React.Component {
                     noicon
                     color="black"
                     style={styles.input}
+                    onChangeText={(text) => {
+                      this.setState({Password: text})
+                    }}
                     password
                 />
                 </Block>
@@ -83,7 +116,7 @@ export default class Login extends React.Component {
                   shadowless
                   style={styles.button}
                   color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => navigation.navigate('Home')}
+                  onPress={() => this.Login()}
                 >
                   <Text
                     style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
