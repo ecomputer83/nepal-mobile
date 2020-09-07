@@ -179,7 +179,7 @@ const IndicatorStyles = {
         this.setModalPaymentVisible(false);
         this.setModalCreateVisible(false);
       
-        Alert.alert("Credit Request", "Credit request has been submited for approval")
+        Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval")
       }
       else {
         this.setState({isnoteligible: true})
@@ -482,7 +482,7 @@ const IndicatorStyles = {
                                       disabled={this.state.isnoteligible}
                                   >
                                       <Text
-                                          style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 14 }}
+                                          style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
                                           color={theme.COLORS.WHITE}
                                       >
                                           Request Credit Approval

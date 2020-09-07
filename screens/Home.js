@@ -15,7 +15,10 @@ class Home extends React.Component {
     this.state = {
       DailyPrices: prod.DailyPrices,
       Articles: Article,
-      depot: prod.Depots[0]
+      depot: prod.Depots[0],
+      depotX: prod.Depots.map((d, i) => {
+        return { key: i, label: d.Name}
+      })
     }
     
   }
