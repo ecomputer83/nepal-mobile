@@ -250,7 +250,8 @@ const styles = StyleSheet.create({
   navbar: {
     paddingBottom: theme.SIZES.BASE * 1.5,
     paddingTop: iPhoneX() ? theme.SIZES.BASE * 3.5 : theme.SIZES.BASE,
-    zIndex: 5
+    zIndex: 5,
+    width: width
   },
   avatar: {
     width: 60,
