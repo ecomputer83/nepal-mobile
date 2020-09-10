@@ -152,19 +152,20 @@ class Header extends React.Component {
                 <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
               IPMAN Code #: {this.state.ipmancode}
             </Text>
-              <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+              
+            
+            </Block>) : (<Block />) }
+            </Block>
+        <Block>
+        <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: Theme.COLORS.HEADER}}>
               Credit limit ₦{this.state.Limit.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
             </Text>
-            <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+          <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
               Credit Balance 
             </Text>
             <Text size={20} style={{ fontFamily: 'HKGrotesk-Bold', lineHeight: 20,fontWeight: '300', color: Theme.COLORS.HEADER}}>
             ₦{this.state.Balance.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
             </Text>
-            </Block>) : (<Block />) }
-            </Block>
-        <Block>
-          <Image source={Images.Profile} style={{ width: 56, height: 55, borderRadius: 50}} />
         </Block>
         
             
