@@ -26,6 +26,17 @@ const AddButton = ({ isWhite, style, navigation, link, iconName }) => (
   </TouchableOpacity>
 );
 
+const AddIconButton = ({ iconFamily, style, navigation, iconName }) => (
+  <TouchableOpacity
+    style={[styles.button, style]}
+    onPress={() => navigation.navigate('Onboarding')}
+  >
+   <Icon name={iconName} family={iconFamily} size={16}
+      color="#ffffff"
+    />
+  </TouchableOpacity>
+);
+
 
 class Header extends React.Component {
 
@@ -63,6 +74,10 @@ class Header extends React.Component {
           <AddButton key="sort" iconName="sort" navigation={navigation} isWhite={white} />,
           <AddButton key="filter" iconName="filter" navigation={navigation} isWhite={white} />
         ];
+      case 'Home':
+        return [
+          <AddIconButton key="logout" iconName="logout" navigation={navigation} iconFamily="AntDesign" />
+        ]
       default:
         break;
     }
@@ -119,8 +134,9 @@ class Header extends React.Component {
     
     return (
       <Block style={styles.options}>
-        <Block middle>
-        <Image source={Images.Logo} style={{ width: 221, height: 53, marginBottom: 20, marginTop: 10 }} />
+        <Block row>
+        <Image source={Images.Logo} style={{ width: 221, height: 53, marginBottom: 20, marginLeft: (width - 221)/2.5, marginTop: 10 }} />
+        <AddIconButton key="logout" iconName="logout" navigation={navigation} iconFamily="AntDesign" style={{ marginLeft: 15, marginTop: 15}} />
         </Block>
         <Block row space="between" > 
           <Block>
@@ -138,6 +154,9 @@ class Header extends React.Component {
             </Text>
               <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: Theme.COLORS.HEADER}}>
               Credit limit ₦{this.state.Limit.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+            </Text>
+            <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+              Credit Balance 
             </Text>
             <Text size={20} style={{ fontFamily: 'HKGrotesk-Bold', lineHeight: 20,fontWeight: '300', color: Theme.COLORS.HEADER}}>
             ₦{this.state.Balance.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}

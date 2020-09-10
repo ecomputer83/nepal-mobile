@@ -177,7 +177,7 @@ constructor(props) {
           setTimeout(() => {
             this.setState({ spinner: false });
             Alert.alert('Congratulation!', "Dispatch information has been programmed successfully.");
-            this.props.navigation.navigate('Home')
+            this.props.navigation.navigate('TrackOrder')
           }, 3000);
         
     };

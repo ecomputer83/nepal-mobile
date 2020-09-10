@@ -9,7 +9,7 @@ import PhoneInput from 'react-native-phone-input'
 import StepIndicator from 'react-native-step-indicator'
 import TextInputMask from 'react-native-text-input-mask';
 import FloatingActionButton from "react-native-floating-action-button";
-
+import Programming from "../screens/Programming"
 import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
 
 const { width, height } = Dimensions.get("screen");
@@ -47,6 +47,7 @@ const IndicatorStyles = {
         Orders: prod.Orders,
         modalCreateVisible: false,
         modalPaymentVisible: false,
+        modalProgramVisible:  false,
         spinner: false,
         currentPosition: 0,
         currentState: 0,
@@ -101,6 +102,10 @@ const IndicatorStyles = {
 
       setModalPaymentVisible(visible) {
         this.setState({modalPaymentVisible: visible});
+      }
+
+      setModalProgramVisible(visible) {
+        this.setState({modalProgramVisible: visible});
       }
 
       setIncrease(){
@@ -172,6 +177,7 @@ const IndicatorStyles = {
       saveandnavigate = () => {
           this.setModalPaymentVisible(false);
           this.setModalCreateVisible(false);
+          //this.setModalProgramVisible(true);
             this.props.navigation.navigate('Programming', { isNew: true, quantity: this.state.quantity})
     }
     requestcredit = () => {
@@ -537,6 +543,19 @@ const IndicatorStyles = {
             </Modal>);
       }
 
+      // renderProgramModal = (isNew) => {
+      //   return (<Modal
+      //     animationType="slide"
+      //     transparent={false}
+      //     visible={this.state.modalProgramVisible}
+      //     onRequestClose={() => {
+      //       this.setModalProgramVisible(false);
+      //     }}>
+
+      //         <Programming quantity={this.state.quantity} isNew={isNew} setModalProgramVisible={this.setModalProgramVisible} />
+      //     </Modal>);
+      // }
+
       renderPaymentModal = () => {
 
         const {currentState, CompletePayment, code} = this.state;
@@ -732,6 +751,7 @@ const IndicatorStyles = {
                 />
                 {this.renderCreateModal()}
                 {this.renderPaymentModal()}
+                {/* {this.renderProgramModal(true)} */}
                     <Block row style={{zIndex: 3, position: 'absolute', top: '90%', right: '5%'}}>
           <FloatingActionButton
             iconName="plus"
