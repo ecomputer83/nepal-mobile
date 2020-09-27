@@ -1,7 +1,7 @@
 import React from 'react';
 import { Block, Text, theme, Button } from 'galio-framework';
 import { nowTheme } from '../constants';
-import { Dimensions, TouchableOpacity } from 'react-native';
+import { Dimensions, TouchableWithoutFeedback } from 'react-native';
 
 const { width } = Dimensions.get('screen');
 export default class OrderCard extends React.Component {
@@ -16,7 +16,7 @@ export default class OrderCard extends React.Component {
             let ProductColor = '#437FB4';
             let StatusColor = '#417505';
 
-            switch(item.ProductName){
+            switch(item.productName){
               case 'PMS':
                 ProductColor = '#303E4F';
                 break;
@@ -35,16 +35,17 @@ export default class OrderCard extends React.Component {
 
             }
 
-            switch(item.Status){
-              case 'Confirmed':
+            switch(item.status){
+              case 1:
                 StatusColor = '#417505';
                 break;
-              case 'Unconfirmed':
+              case 0:
                 StatusColor = '#E35063';
                 break;
             }
             const BlackColor = nowTheme.COLORS.BLACK;
           return ( 
+            <TouchableWithoutFeedback onPress={() => (Navigation) ? Navigation.navigate('OrderDetail', { Order: item, orderId: item.orderId }): {}}>
               <Block style={{width: width, marginBottom: 1}}>
                 <Block row>
                   <Block style={{width: 41, height: 100, backgroundColor: ProductColor, alignItems: 'center', justifyContent: 'center'}}>
@@ -52,7 +53,7 @@ export default class OrderCard extends React.Component {
                       style={{ fontFamily: 'HKGrotesk-BoldLegacy', paddingBottom: 15 }}
                       size={14}
                       color='#ffffff'>
-                    {item.ProductName}
+                    {item.productName}
                     </Text>
                   </Block>
                   <Block style={{width: width - 41}}>
@@ -68,7 +69,7 @@ export default class OrderCard extends React.Component {
                   zIndex: 2
                 }}
               >
-                {item.OrderId}
+                {item.orderNo}
                   </Text>
                   </Block>
                   <Block style={{alignItems: 'center', justifycentent: 'center'}}>
@@ -79,10 +80,10 @@ export default class OrderCard extends React.Component {
                   fontFamily: 'HKGrotesk-BoldLegacy',
                 }}
               >
-                 ₦{item.Price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+                 ₦{item.totalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                   </Text>
                   <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', color: '#B4B4B4' }} size={12}>
-                    Order qty: {item.Quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+                    Order qty: {item.quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                   </Text>
                 </Block>
                 </Block>
@@ -98,7 +99,7 @@ export default class OrderCard extends React.Component {
                   zIndex: 2
                 }}
               >
-                {item.DepositDate}
+                {new Date(item.orderDate).toDateString()}
                   </Text>
                   </Block>
                   <Block style={{width: 85, height: 22, borderRadius: 5, backgroundColor: StatusColor, alignItems: 'center', justifyContent: 'center'}}>
@@ -109,12 +110,13 @@ export default class OrderCard extends React.Component {
                   fontFamily: 'HKGrotesk-SemiBoldLegacy',
                 }}
               >
-                {item.Status}
+                {(item.status == 1) ? 'Confirmed': 'Unconfirmed'}
                   </Text>
                 </Block>
                 </Block></Block>
             </Block>
             
-          </Block>)
+          </Block>
+          </TouchableWithoutFeedback>)
     }
 }

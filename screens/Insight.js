@@ -4,7 +4,8 @@ import { Block, theme,Button, Text } from "galio-framework";
 import { BarChart } from 'react-native-chart-kit'
 import { prod, Images, nowTheme } from '../constants';
 import Spinner from 'react-native-loading-spinner-overlay';
-
+import HttpService from '../services/HttpService';
+import { AsyncStorage } from 'react-native';
 const { width } = Dimensions.get("screen");
 const chartConfigs = {
     backgroundColor: '#ffffff',
@@ -15,15 +16,41 @@ const chartConfigs = {
 class Insight extends React.Component {
     
     state = {
-        Marketers: prod.Marketers,
+        Code: null,
+        Marketers: [],
         Data: {
             labels: ["Confirmed Order", "Unconfirmed Order"],
             datasets: [
               {
-                data: [prod.Orders.filter(c=>c.Status == "Confirmed").length, prod.Orders.filter(c=>c.Status == "Unconfirmed").length]
+                data: [0, 0]
               }
             ]
           }
+    }
+    componentDidMount(){
+        AsyncStorage.getItem('userToken').then(token => {
+            HttpService.GetAsync('api/order', token).then(resp => resp.json()
+              .then(_value => {
+                var chart = {
+                    labels: ["Confirmed Order", "Unconfirmed Order"],
+                    datasets: [
+                      {
+                        data: [_value.filter(c=>c.status == 1).length, _value.filter(c=>c.status == 0).length]
+                      }
+                    ]
+                  }
+              this.setState({Data: chart});
+              }))
+
+              HttpService.GetAsync('api/misc/marketer', token).then(resp => {
+                  if(resp.status == 200){
+                  resp.json()
+              .then(_value => {
+              this.setState({Code: _value.code, Marketers: _value.marketerCustomers});
+              })
+            }
+            })
+          })
     }
     renderChildFilter = () => {
         return this.state.Filters.map((v,i) => {
@@ -56,8 +83,8 @@ class Insight extends React.Component {
                 <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>{index}</Text>
             </Block>
             <Block row space='between' style={{ width: width-123, alignItems: 'center'}}>
-                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.Name}</Text>
-                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.Quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
+                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.customerName}</Text>
+                <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>{item.orderQty.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
             </Block>
         </Block>
         )
@@ -70,7 +97,7 @@ class Insight extends React.Component {
                 <Block style={{paddingLeft: 10}}>
                     <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBold', lineHeight: 16}}>Marketer's Performance</Text>
                     <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14}}>Marketer's code</Text>
-                    <Text size={20} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 24}}>NMC0432</Text>
+                    <Text size={20} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 24}}>{this.state.Code}</Text>
                 </Block>
                 <Block>
                 { this.renderTableHeader()
@@ -102,7 +129,7 @@ class Insight extends React.Component {
 
                     <Block space="between">
                         <Block>
-                            {this.renderTable()}
+                            {(this.state.Code != null) ? this.renderTable() : (<Block />)}
                         </Block>
                         <Block style={{margin: 12, padding: 4}}>
                         <BarChart

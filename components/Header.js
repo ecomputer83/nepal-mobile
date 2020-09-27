@@ -1,4 +1,4 @@
-import React  from 'react';
+import * as React  from 'react';
 import { withNavigation } from 'react-navigation';
 import { ImageBackground, TouchableOpacity, StyleSheet, Image, Platform, Dimensions, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage'
@@ -10,62 +10,94 @@ import Input from './Input';
 import Tabs from './Tabs';
 import Theme from '../constants/Theme';
 import {Images, prod} from '../constants';
+
+import { AuthContext } from '../helpers/authContext';
+import HttpService from '../services/HttpService';
 const Fontello = createIconSetFromFontello(fontelloConfig);
 const { height, width } = Dimensions.get('window');
 const iPhoneX = () =>
   Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896);
 
-const AddButton = ({ isWhite, style, navigation, link, iconName }) => (
-  <TouchableOpacity
-    style={[styles.button, style]}
-    
-  >
-   <Fontello name={iconName} size={16}
-      color="#ffffff"
-    />
-  </TouchableOpacity>
-);
-
-const AddIconButton = ({ iconFamily, style, navigation, iconName }) => (
-  <TouchableOpacity
-    style={[styles.button, style]}
-    onPress={() => navigation.navigate('Onboarding')}
-  >
-   <Icon name={iconName} family={iconFamily} size={16}
-      color="#ffffff"
-    />
-  </TouchableOpacity>
-);
 
 
-class Header extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {
-      Users: prod.Users,
-      Name: 'Business Name',
-      Limit: 0,
-      Balance: 0,
-      ipman: 0,
-      ipmancode: '',
-      isfetched: false
-    }
+function Header ({ white, title, back, bgColor, User, search, message, transparent, noNav, iconColor, titleColor, navigation }) {
 
-  }
+  const { signOut } = React.useContext(AuthContext);
+
+  const [state, setState] = React.useState({
+    Name: 'Business Name',
+    Limit: 0,
+    Balance: 0,
+    ipman: 0,
+    ipmancode: '',
+    isfetched: false
+  });
   
-  
+  const AddIconButton = ({ iconFamily, style, iconName }) => (
+    <TouchableOpacity
+      style={[styles.button, style]}
+      onPress={() => signOut()}
+    >
+     <Icon name={iconName} family={iconFamily} size={16}
+        color="#ffffff"
+      />
+    </TouchableOpacity>
+  );
 
-  handleLeftPress = () => {
-    const { back, navigation } = this.props;
+  const AddButton = ({ isWhite, style, navigation, link, iconName }) => (
+    <TouchableOpacity
+      style={[styles.button, style]}
+      
+    >
+     <Fontello name={iconName} size={16}
+        color="#ffffff"
+      />
+    </TouchableOpacity>
+  );
+
+  const handleLeftPress = () => {
     return back ? navigation.goBack() : navigation.openDrawer();
   };
 
-  readData = async () => {
-    return await AsyncStorage.getItem('@UserId');
-  }
-  renderRight = () => {
-    const { white, title, navigation } = this.props;
+  React.useEffect(() => {
+  const readData = async () => {
+    var token = await AsyncStorage.getItem('userToken');
+    var _user = await AsyncStorage.getItem('user');
+    try {
+        if(_user != null) {
+          var user = JSON.parse(_user)
+          setState({Name: user.businessName,
+            Limit: user.creditLimit,
+            Balance: user.creditBalance,
+            ipman: user.isIPMAN,
+            ipmancode: user.ipmanCode,
+            isfetched: true
+            })
+          console.log(user)
+        }else{
+          signOut();
+        }
+        HttpService.GetAsync('api/account/user', token)
+        .then(response => {
+          if (!response.ok) {
+            if(!response.statusText){
+              if(response.headers.map.www-authenticate){
+                signOut();
+              }
+            }else{
+              throw Error(response.statusText);
+            }
+          }
+        })
+    } catch (error) {
+      console.error(error);
+      //signOut();
+    }
+  };
+  readData();
+}, []);
+  const renderRight = () => {
     const { routeName } = navigation.state;
 
     switch (routeName) {
@@ -76,14 +108,13 @@ class Header extends React.Component {
         ];
       case 'Home':
         return [
-          <AddIconButton key="logout" iconName="logout" navigation={navigation} iconFamily="AntDesign" />
+          <AddIconButton key="logout" iconName="logout" iconFamily="AntDesign" />
         ]
       default:
         break;
     }
   };
-  renderSearch = () => {
-    const { navigation, bgColor } = this.props;
+  const renderSearch = () => {
     return (
       bgColor ? (
       <Block style={{width: width, backgroundColor: Theme.COLORS.BODY}}> 
@@ -112,25 +143,7 @@ class Header extends React.Component {
       )
     );
   };
-  renderMessage = () => {
-    const { navigation, User } = this.props;
-    if(!this.state.isfetched){
-    this.readData().then( userid => {
-      console.log('mylog' + parseInt(userid))
-      if(userid !== null){
-        
-        var user = prod.Users.find(u => u.UserId == parseInt(userid))
-        
-        this.setState({Name: user.CompanyName,
-        Limit: user.limit,
-        Balance: user.balance,
-        ipman: user.ipman,
-        ipmancode: user.ipmancode,
-        isfetched: true
-        })
-      }
-    });
-  }
+  const renderMessage = () => {
     
     return (
       <Block style={styles.options}>
@@ -144,28 +157,31 @@ class Header extends React.Component {
               Good Morning,
             </Text>
             <Text size={20} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 24,fontWeight: '300', color: Theme.COLORS.HEADER}}>
-              {this.state.Name}
+              {state.Name}
             </Text>
-            {this.state.ipman == 1 ? 
+            {state.ipman == 1 ? 
             (
               <Block>
                 <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
-              IPMAN Code #: {this.state.ipmancode}
+              IPMAN Code #: {state.ipmancode}
             </Text>
               
             
             </Block>) : (<Block />) }
             </Block>
         <Block>
-        <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: Theme.COLORS.HEADER}}>
-              Credit limit ₦{this.state.Limit.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
-            </Text>
-          <Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+          {(state.Limit != null)? 
+        (<Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: Theme.COLORS.HEADER}}>
+              Credit limit ₦{state.Limit.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+            </Text>) :(<Block />)
+          }
+          {(state.Balance != null)? 
+          (<Block><Text size={12} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 12,fontWeight: '300', color: Theme.COLORS.HEADER}}>
               Credit Balance 
             </Text>
             <Text size={20} style={{ fontFamily: 'HKGrotesk-Bold', lineHeight: 20,fontWeight: '300', color: Theme.COLORS.HEADER}}>
-            ₦{this.state.Balance.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
-            </Text>
+            ₦{state.Balance.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+        </Text></Block>) : <Block /> }
         </Block>
         
             
@@ -174,46 +190,31 @@ class Header extends React.Component {
     );
   };
 
-  renderTabs = () => {
-    const { tabs, tabIndex, navigation } = this.props;
-    const defaultTab = tabs && tabs[0] && tabs[0].id;
+  // renderTabs = () => {
+  //   const { tabs, tabIndex, navigation } = this.props;
+  //   const defaultTab = tabs && tabs[0] && tabs[0].id;
 
-    if (!tabs) return null;
+  //   if (!tabs) return null;
 
-    return (
-      <Tabs
-        data={tabs || []}
-        initialIndex={tabIndex || defaultTab}
-        onChange={id => navigation.setParams({ tabId: id })}
-      />
-    );
-  };
-  renderHeader = () => {
-    const { search, message, tabs } = this.props;
-    if (search || tabs || message) {
+  //   return (
+  //     <Tabs
+  //       data={tabs || []}
+  //       initialIndex={tabIndex || defaultTab}
+  //       onChange={id => navigation.setParams({ tabId: id })}
+  //     />
+  //   );
+  // };
+  const renderHeader = () => {
+    if (search || message) {
       return (
         <Block center>
-          {message ? this.renderMessage() : null}
-          {search ? this.renderSearch() : null}
-          {tabs ? this.renderTabs() : null}
+          {message ? renderMessage() : null}
+          {search ? renderSearch() : null}
         </Block>
       );
     }
   };
-  render() {
-    const {
-      back,
-      title,
-      User,
-      white,
-      transparent,
-      bgColor,
-      noNav,
-      iconColor,
-      titleColor,
-      navigation,
-      ...props
-    } = this.props;
+
     const { routeName } = navigation.state;
     const noShadow = ['Search', 'Profile'].includes(routeName);
     const headerStyles = [
@@ -240,20 +241,20 @@ class Header extends React.Component {
           title={title}
           style={navbarStyles}
           transparent={transparent}
-          right={this.renderRight()}
+          right={renderRight()}
           rightStyle={{ alignItems: 'center' }}
           titleStyle={[
             styles.title,
             { color: Theme.COLORS[white ? 'WHITE' : 'HEADER'] },
             titleColor && { color: titleColor }
           ]}
-          {...props}
+          //{...props}
         />)
         }
-        {this.renderHeader()}
+        {renderHeader()}
       </Block>
     );
-  }
+  
 }
 
 const styles = StyleSheet.create({

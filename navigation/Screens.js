@@ -11,7 +11,7 @@ import Home from '../screens/Home';
 import Login from '../screens/Login';
 import Register from '../screens/Register';
 import Onboarding from '../screens/Onboarding';
-import MakeOrder from '../screens/MakeOrder';
+import OrderDetail from '../screens/OrderDetail';
 import CardPayment from '../screens/CardPayment';
 import Programming from '../screens/Programming';
 import TrackOrder from '../screens/TrackOrder';
@@ -25,82 +25,7 @@ import nowTheme from '../constants/Theme';
 
 // header for screens
 import Header from '../components/Header';
-const AuthContext = React.createContext();
 const Fontello = createIconSetFromFontello(fontelloConfig);
-
-// const [state, dispatch] = React.useReducer(
-//   (prevState, action) => {
-//     switch (action.type) {
-//       case 'RESTORE_TOKEN':
-//         return {
-//           ...prevState,
-//           userToken: action.token,
-//           isLoading: false,
-//         };
-//       case 'SIGN_IN':
-//         return {
-//           ...prevState,
-//           isSignout: false,
-//           userToken: action.token,
-//         };
-//       case 'SIGN_OUT':
-//         return {
-//           ...prevState,
-//           isSignout: true,
-//           userToken: null,
-//         };
-//     }
-//   },
-//   {
-//     isLoading: true,
-//     isSignout: false,
-//     userToken: null,
-//   }
-// );
-
-// React.useEffect(() => {
-//   // Fetch the token from storage then navigate to our appropriate place
-//   const bootstrapAsync = async () => {
-//     let userToken;
-
-//     try {
-//       userToken = await AsyncStorage.getItem('userToken');
-//     } catch (e) {
-//       // Restoring token failed
-//     }
-
-//     // After restoring token, we may need to validate it in production apps
-
-//     // This will switch to the App screen or Auth screen and this loading
-//     // screen will be unmounted and thrown away.
-//     dispatch({ type: 'RESTORE_TOKEN', token: userToken });
-//   };
-
-//   bootstrapAsync();
-// }, []);
-
-// const authContext = React.useMemo(
-//   () => ({
-//     signIn: async data => {
-//       // In a production app, we need to send some data (usually username, password) to server and get a token
-//       // We will also need to handle errors if sign in failed
-//       // After getting token, we need to persist the token using `AsyncStorage`
-//       // In the example, we'll use a dummy token
-
-//       dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
-//     },
-//     signOut: () => dispatch({ type: 'SIGN_OUT' }),
-//     signUp: async data => {
-//       // In a production app, we need to send user data to server and get a token
-//       // We will also need to handle errors if sign up failed
-//       // After getting token, we need to persist the token using `AsyncStorage`
-//       // In the example, we'll use a dummy token
-
-//       dispatch({ type: 'SIGN_IN', token: 'dummy-auth-token' });
-//     },
-//   }),
-//   []
-// );
 
 const transitionConfig = (transitionProps, prevTransitionProps) => ({
   transitionSpec: {
@@ -165,13 +90,11 @@ const TrackOrderStack = createStackNavigator(
         header: <Header bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title="Orders" navigation={navigation} />
       })
     },
-    MakeOrder: {
-      screen: MakeOrder,
-      navigationOptions: ({ navigation }) => {
-        const { state } = navigation;
-        let title = `${navigation.state.params && state.params.title ? state.params.title : 'Make Order'}`;
-        header: <Header bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title={title} navigation={navigation} />
-      }
+    OrderDetail: {
+      screen: OrderDetail,
+      navigationOptions: ({ navigation }) => ({
+        header: <Header back bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title='Order Information' navigation={navigation} />
+      })
     },
     CardPayment: {
       screen: CardPayment,
@@ -278,30 +201,6 @@ const TabStack = createBottomTabNavigator(
 
 const AppStack = createStackNavigator(
   {
-    Onboarding: {
-      screen: Onboarding,
-      navigationOptions: {
-        header: null,
-    },
-    },
-    Login: {
-      screen: Login,
-      navigationOptions: {
-        header: null,
-    },
-    },
-    Register: {
-      screen: Register,
-      navigationOptions: {
-        header: null,
-    },
-    },
-    RegReview: {
-      screen: RegReview,
-      navigationOptions: {
-        header: null,
-    },
-    },
     Home: {
       screen: TabStack,
       navigationOptions: {

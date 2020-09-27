@@ -12,6 +12,7 @@ import StepIndicator from 'react-native-step-indicator'
 import TextInputMask from 'react-native-text-input-mask';
 import FloatingActionButton from "react-native-floating-action-button";
 import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
+import HttpService from "../services/HttpService";
 
 const { width, height } = Dimensions.get("screen");
 const iPhoneX = () =>
@@ -46,13 +47,13 @@ class Home extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      DailyPrices: prod.DailyPrices,
+      DailyPrices: [],
       Articles: Article,
-      
+      OrderId: 0,
       modalCreateVisible: false,
         modalPaymentVisible: false,
         modalProgramVisible:  false,
-        spinner: false,
+        spinner: true,
         currentPosition: 0,
         currentState: 0,
         CompletePayment: false,
@@ -72,20 +73,24 @@ class Home extends React.Component {
       ipman: 0,
       isnoteligible: false,
       isfetched: false,
-      depotX: prod.Depots.map((d, i) => {
-        return { key: i, label: d.Name}
-      }),
-      depot: prod.Depots[0]
+      depotX: [],
+      Depots: [],
+      depot: {},
+      _depot: {},
+      token: null,
+      BankName: null,
+      Reference: null
     }
     
   }
   pinInput = React.createRef();
 
   readData = async () => {
-    return await AsyncStorage.getItem('@UserId');
+    
+    return await AsyncStorage.getItem('user');
   }
   pickerProduct(index){
-      prod.DailyPrices.map( (v,i)=>{
+      this.state.DailyPrices.map( (v,i)=>{
        if( index === i ){
          this.setState({
          product: prod.DailyPrices[index],
@@ -95,16 +100,16 @@ class Home extends React.Component {
       })
   }
   pickerDepot(index){
-    prod.Depots.map( (v,i)=>{
+    this.state.Depots.map( (v,i)=>{
      if( index === i ){
        this.setState({
-       depot: prod.Depots[index]
+       _depot: prod.Depots[index]
       })
      }
     })
 }
   pickerDepotX(index){
-    prod.Depots.map( (v,i)=>{
+    this.state.Depots.map( (v,i)=>{
      if( index === i ){
        this.setState({
        depot: prod.Depots[index]
@@ -129,14 +134,17 @@ class Home extends React.Component {
       this.setState({modalProgramVisible: visible});
     }
 
-    setIncrease(){
-      var quantity = parseInt(this.state.quantity) + 1000
+    setIncrease(number){
+      
+      var quantity = parseInt(this.state.quantity) + number
       this.setState({quantity: quantity.toString(), ifInputupdated: true})
     }
 
-    setDecrease(){
-      var quantity = parseInt(this.state.quantity) - 1000
+    setDecrease(number){
+      if(parseInt(this.state.quantity) >= number){
+      var quantity = parseInt(this.state.quantity) - number
       this.setState({quantity: quantity.toString(), ifInputupdated: true})
+      }
     }
 
     onStepPress = position => {
@@ -146,14 +154,57 @@ class Home extends React.Component {
       let ifup = false;
       var currentPosition = this.state.currentPosition
         if(last){
-            var TotalAmount = this.state.quantity * this.state.product.Price;
+            var TotalAmount = this.state.quantity * this.state.product.price;
             this.setState({TotalAmount: TotalAmount})
         }
         console.log(this.state.ipman)
       if(last && this.state.ipman == 1){
-        
+        var model = {
+          ProductId: this.state.product.id,
+          DepotId: this.state.depot.id,
+          Quantity: parseInt(this.state.quantity),
+          TotalAmount: parseInt(this.state.quantity * this.state.product.price)
+        } 
+        if(this.state.DepotId == null)
+        {
+          console.log(model)
+           HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(value => 
+           {
+             console.log(value);
+             this.setState({OrderId: value})
+           }));
+       }else{
+           HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => response.json().then(value => 
+           {
+             console.log(value);
+             //this.setState({OrderId: value})
+           }));
+       }
         currentPosition = this.state.currentPosition + 2
       }else {
+        if(this.state.currentPosition == 3){
+           var model = {
+             ProductId: this.state.product.id,
+             DepotId: this.state.depot.id,
+             Quantity: parseInt(this.state.quantity),
+             TotalAmount: parseInt(this.state.TotalAmount)
+           } 
+           if(this.state.DepotId == null)
+           {
+             console.log(model)
+              HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(value => 
+              {
+                console.log(value);
+                this.setState({OrderId: value})
+              }));
+          }else{
+              HttpService.PutAsync('api/Order/' + this.state.DepotId, model, this.state.token).then(response => response.json().then(value => 
+              {
+                console.log(value);
+                //this.setState({OrderId: value})
+              }));
+          }
+        }
         currentPosition = this.state.currentPosition + 1
       }
       if(currentPosition == 2){
@@ -169,14 +220,23 @@ class Home extends React.Component {
       }
     }
     Proceed(){
-        if(this.state.currentState == 0){
-          var currentPosition = this.state.currentState + 1
-          this.setState({currentState: currentPosition})
-        }else{
              //perform logic
-             if(this.state.TotalAmount != 0) {
+             if(this.state.BankName != null && this.state.Reference != null) {
+              this.setState({spinner: true})
+              //validate payment 
+
+              var model = {
+                orderId: this.state.OrderId,
+                totalAmount: parseInt(this.state.TotalAmount),
+                type: 3,
+                name: this.state.BankName,
+                reference: this.state.Reference
+              }
+              console.log(model)
+              HttpService.PostAsync('api/Credit', model, this.state.token).then( resp => {
+                if(resp.status == 200){
               this.setState({
-                spinner: true,depot: null,
+                depot: null,
                 product : null,
                 productIndex: null,
                 depotIndex: null,
@@ -185,13 +245,13 @@ class Home extends React.Component {
                 depotX: prod.Depots.map((d, i) => {
                   return { key: i, label: d.Name}
                 }),
-                depot: prod.Depots[0]
+                depot: prod.Depots[0],
+                spinner: false, CompletePayment: true
               });
-              setTimeout(() => {
-                this.setState({ spinner: false, CompletePayment: true});
-              }, 3000);
+
+            }
+            })
           }
-        }
     }
 
     edit() {
@@ -203,14 +263,25 @@ class Home extends React.Component {
         this.setModalPaymentVisible(false);
         this.setModalCreateVisible(false);
         //this.setModalProgramVisible(true);
-          this.props.navigation.navigate('Programming', { isNew: true, quantity: this.state.quantity})
+          this.props.navigation.navigate('OrderDetail', { orderId: this.state.OrderId})
   }
   requestcredit = () => {
     if(this.state.Balance >= parseInt(this.state.TotalAmount)){
-      this.setModalPaymentVisible(false);
-      this.setModalCreateVisible(false);
-    
-      Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval")
+      
+      if(this.state.OrderId != 0){
+        this.setState({spinner: true})
+      var model = {
+        orderId: this.state.OrderId,
+        totalAmount: parseInt(this.state.TotalAmount),
+        type: 2
+      }
+      HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
+        this.setModalPaymentVisible(false);
+        this.setModalCreateVisible(false);
+        this.setState({spinner: false})
+        Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
+      })
+    }
     }
     else {
       this.setState({isnoteligible: true})
@@ -234,12 +305,12 @@ class Home extends React.Component {
 
   renderProducts = () => {
     let bgColor = ["#303E4F", "#437FB4", "#909090", "#CB582D", "#E37E2E"]
-      return prod.DailyPrices.map((p, i)=>{
+      return this.state.DailyPrices.map((p, i)=>{
           const productStyle = [styles.product, {backgroundColor: bgColor[i]}, (this.state.productIndex == i) && styles.selected]
           return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>
-              <Block width={width * 0.9} row space='between' style={productStyle}>
-                  <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Product}</Text>
-                  <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#f4f4f4' }}>₦{p.Price}/{p.Unit}</Text>
+              <Block width={width * 0.9} row space='between' style={{marginTop: 5}} space='between' style={productStyle}>
+                  <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.product}</Text>
+                  <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#f4f4f4' }}>₦{p.price}/{p.unit}</Text>
               </Block>
           </TouchableHighlight>)
       })
@@ -247,11 +318,11 @@ class Home extends React.Component {
 
   renderDepots = () => {
     
-      return prod.Depots.map((p, i)=>{
+      return this.state.Depots.map((p, i)=>{
           const productStyle = [styles.product, (this.state.depotIndex == i) && styles.selected]
           return (<TouchableHighlight onPress={() => this.setDepot(p, i)}>
               <Block width={width * 0.9} middle style={productStyle}>
-                  <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Name}</Text>
+                  <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.name}</Text>
               </Block>
           </TouchableHighlight>)
       })
@@ -294,7 +365,7 @@ class Home extends React.Component {
                   paddingBottom:5
                 }}
               >
-                {s.Product}
+                {s.product}
                   </Text>
           <Text
                 style={{
@@ -305,7 +376,7 @@ class Home extends React.Component {
                   paddingBottom:5
                 }}
               >
-                ₦{s.Price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
+                ₦{s.price.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                   </Text>
         </Block>)
     })
@@ -313,15 +384,14 @@ class Home extends React.Component {
 
   renderCreateModal = () => {
     if(!this.state.isfetched){
-    this.readData().then( userid => {
-      if(userid !== null){
+    this.readData().then( resp => {
+      if(resp !== null){
         
-        var user = prod.Users.find(u => u.UserId == parseInt(userid))
-        console.log(user.ipman)
-        this.setState({Name: user.CompanyName,
-        Limit: user.limit,
-        Balance: user.balance,
-        ipman: user.ipman,
+        var user = JSON.parse(resp);
+        this.setState({Name: user.businessName,
+        Limit: user.creditLimit,
+        Balance: user.creditBalance,
+        ipman: user.isIPMAN,
         isfetched: true
         })
       }
@@ -337,7 +407,7 @@ class Home extends React.Component {
             this.setModalCreateVisible(false)
           }}>
           <Block  flex center style={{backgroundColor: '#FAFAFA', paddingTop: iPhoneX() ? theme.SIZES.BASE * 3.5 : theme.SIZES.BASE }}>
-            <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
+            <Block row space='between' style={{marginTop: 5}} space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
               <Text style={{ fontFamily: 'HKGrotesk-Bold', fontSize: 20 }}> {this.GenerateTitle(this.state.currentPosition)}</Text>
               <Icon
                 name={'x'}
@@ -372,20 +442,73 @@ class Home extends React.Component {
               : (currentPosition == 2)   ?             
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
   <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
-      <Block row>
-      <GaButton
-                      shadowless
-                      style={styles.increbutton}
-                      color={nowTheme.COLORS.BACKGROUND}
-                      onPress={() => this.setIncrease()}
+
+      <Block row space='between' style={{marginTop: 5}}>
+      <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(33000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
                   >
-                      <Text
-                          style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
-                          color={theme.COLORS.WHITE}
-                      >
-                          +
-                      </Text>
-                  </GaButton>   
+                    +33,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(40000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +40,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(45000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +45,000
+                  </Text>
+                </Button>
+        </Block>
+        <Block row space='between' style={{marginTop: 5}}>
+        <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(60000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +60,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(90000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +90,000
+                  </Text>
+                </Button>
+        </Block>
+      <Block row space='between' style={{marginTop: 5}}>
+      
                 <Input
                     placeholder="Quantity"
                     color="black"
@@ -396,22 +519,74 @@ class Home extends React.Component {
                     }}
                     keyboardType="numeric"
                     noicon
+                    editable = {false}
                   />
 
-<GaButton
-                      shadowless
-                      style={[styles.increbutton, {opacity: 0.35}]}
-                      color='#23C9F165'
-                      onPress={() => this.setDecrease()}
-                  >
-                      <Text
-                          style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
-                          color={theme.COLORS.BLACK}
-                      >
-                          -
-                      </Text>
-                  </GaButton>
                 </Block>
+                <Block row space='between' style={{marginTop: 5}}>
+      <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(33000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -33,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(40000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -40,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(45000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -45,000
+                  </Text>
+                </Button>
+        </Block>
+        <Block row space='between' style={{marginTop: 5}}>
+        <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(60000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -60,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(90000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -90,000
+                  </Text>
+                </Button>
+        </Block>
                 </Block>
                 : (currentPosition == 3) ?
                 <Block width={width * 0.9} style={{ marginBottom: 5 }}>
@@ -450,23 +625,23 @@ class Home extends React.Component {
                     <Block style={{width: (width * 0.9), marginTop: 25, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.Product} (ex {depot.Name})</Text>
                 
-                <Block row space='between'>
+                <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Order Quantity:</Text>
                   <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres</Text>
                 </Block>
-                <Block row space='between'>
+                <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>List Unit Price:</Text>
                   <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.Price}</Text>
                 </Block>
-                <Block row space='between'>
+                <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Discount Offered:</Text>
                   <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0.5</Text>
                 </Block>
-                <Block row space='between'>
+                <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>IPMAN Discount:</Text>
                   <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0.5</Text>
                 </Block>
-                <Block row space='between'>
+                <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Net Unit Price:</Text>
                   <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.Price - 1}</Text>
                 </Block>
@@ -541,7 +716,7 @@ class Home extends React.Component {
                                       style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
                                       color={theme.COLORS.WHITE}
                                   >
-                                      Proceed To Payment
+                                      Submit Bank Deposit
                                   </Text>
                               </GaButton>
                             </Block>) 
@@ -580,18 +755,6 @@ class Home extends React.Component {
         </Modal>);
   }
 
-  // renderProgramModal = (isNew) => {
-  //   return (<Modal
-  //     animationType="slide"
-  //     transparent={false}
-  //     visible={this.state.modalProgramVisible}
-  //     onRequestClose={() => {
-  //       this.setModalProgramVisible(false);
-  //     }}>
-
-  //         <Programming quantity={this.state.quantity} isNew={isNew} setModalProgramVisible={this.setModalProgramVisible} />
-  //     </Modal>);
-  // }
 
   renderPaymentModal = () => {
 
@@ -605,7 +768,7 @@ class Home extends React.Component {
           }}>
         { (!CompletePayment) ?  
           <Block  flex center style={{backgroundColor: '#FAFAFA', paddingTop: iPhoneX() ? theme.SIZES.BASE * 3.5 : theme.SIZES.BASE }}>
-            <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
+            <Block row space='between' style={{marginTop: 5}} space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
         <Text style={{ fontFamily: 'HKGrotesk-Bold', fontSize: 20 }}> Make Payment - Step {currentState + 1}</Text>
               <Icon
                 name={'x'}
@@ -617,83 +780,33 @@ class Home extends React.Component {
             </Block>
             <Block  width={width * 0.9} style={{ padding: 2 }}>
               <Block>
-              { (currentState == 0) ?
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-                            <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium'}}>Enter Card details</Text>
+                            <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium'}}>Enter Bank Teller details</Text>
                             <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
-            Your card details are securely saved with Paystack so you don't have to enter it again
+            You are expected to make payment at any bank, please provide the payment information
             </Text>
             <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
-                            <TextInputMask
-                                refInput={ref => { this.input = ref }}
-                                onChangeText={(formatted, extracted) => {
-                                  this.setState({CardNumber: extracted})
-                                }}
-                                mask={"[0000] [0000] [0000] [0000]"}
-                                placeholder="Enter card number here"
-                                style={styles.inputs}
-                                keyboardType="numeric"
-                            />
+            <Input
+                    left
+                    color="black"
+                    style={styles.inputs}
+                    placeholder="Enter bank name"
+                    onChangeText={text => this.setState({BankName: text})}
+                    noicon
+                />
                           </Block>
-                          <Block width={width * 0.9} row style={{ marginBottom: 5, marginLeft: 5, }} space="between">
-                          <Block width={width * 0.48}>
-                          <TextInputMask
-                                refInput={ref => { this.input = ref }}
-                                onChangeText={(formatted, extracted) => {
-                                  this.setState({ExpiryDate: formatted})
-                                }}
-                                mask={"[00] / [00]"}
-                                placeholder="MM / YY"
-                                style={styles.inputs}
-                                keyboardType="numeric"
-                            />
-                          </Block>
-                          <Block width={width * 0.4} style={{ marginBottom: 5 }}>
-                          <TextInputMask
-                                refInput={ref => { this.input = ref }}
-                                onChangeText={(formatted, extracted) => {
-                                  this.setState({CVV: extracted})
-                                }}
-                                mask={"[000]"}
-                                placeholder="CVC"
-                                style={styles.inputs}
-                                keyboardType="numeric"
-                            />
-                          </Block>
-                          </Block>
+           <Block width={width * 0.9} row space='between' style={{marginTop: 5}} style={{ marginBottom: 5, marginLeft: 5, }} space="between">
+              <Input
+                    left
+                    color="black"
+                    style={styles.inputs}
+                    placeholder="Enter teller number or payment refrence number"
+                    onChangeText={text => this.setState({Reference: text})}
+                    noicon
+                />
                           
                             </Block>
-              : (currentState == 1) ?
-              <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-              <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium', marginBottom: 5}}>Verify Card</Text>
-                            <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
-            Please enter 4 digit pin to authorize
-            </Text> 
-            <Block center width={width * 0.9} style={{ marginTop: 25, marginBottom: 35 }}> 
-            <SmoothPinCodeInput
-            cellStyle={{
-                borderWidth: 0,
-                borderRadius: 5,
-                backgroundColor: '#EDEDED',
-              }}
-              cellStyleFocused={{
-                borderWidth: 0,
-                backgroundColor: '#EDEDED',
-              }}
-        ref={this.pinInput}
-        value={code}
-        onTextChange={code => this.setState({ code })}
-        onFulfill={this._checkCode}
-        
-        
-        
-        onBackspace={() => console.log('No more back.')}
-        />
-        </Block>
-
-                              
-                            </Block>
-              : <Block />}
+              
               <Block style={{marginBottom:  10, marginTop: 20}}></Block>
                             <Block width={width * 0.9} style={{marginBottom: 25}} right>
                             
@@ -712,12 +825,11 @@ class Home extends React.Component {
                               </GaButton>
                             
                             </Block>
-                            <Block middle>
-                            <Image source={Images.paystack} style={{ width: 168, height: 49 }} />
-                          </Block>
+                            
               </Block>
               
             </Block>
+          </Block>
           </Block>
           :
         <Block width={width * 0.9} height={height} center style={{justifyContent: 'center'}}>
@@ -726,7 +838,7 @@ class Home extends React.Component {
             </Block>
             <Block style={{marginTop: 10}}>
             <Text size={19} style={{color: '#2C4453', lineHeight: 26, fontFamily: 'ProductSans-Bold'}}>
-                Great work Business Name
+                Great work {this.state.businessName}
             </Text>
             </Block>
             <Block style={{marginTop: 10}}>
@@ -770,7 +882,7 @@ class Home extends React.Component {
   renderArticles = () => {
     return (
       <Block>
-        <Block row space="between">
+        <Block row space='between' style={{marginTop: 5}} space="between">
         <Block style={{ margin: 10 }}>
         <Text style={{ fontFamily: 'HKGrotesk-SemiBold', fontSize: 14 }} color='#CB582D'>
             NEWS HIGHLIGHTS
@@ -797,28 +909,54 @@ class Home extends React.Component {
         }}/></Block>
     )
   }
+  
   componentDidMount(){
+    if(this.state.DailyPrices != null){
+      HttpService.GetAsync('api/Misc').then(response => {
+        
+        response.json().then(json => {
+          console.log(json)
+        if(json != undefined){
+        var depots = json.depots.map((d, i) => {
+          return { key: d.id, label: d.name}
+        });
+        var depot = (json.depots.length > 0) ? json.depots[0]: {};
+        this.setState({DailyPrices: json.products, depotX: depots, Depots: json.depots, depot: depot})
+        AsyncStorage.setItem('misc', JSON.stringify({DailyPrices: json.products, Depots: json.depots}))
+        if(this.state.DailyPrices.length > 0){
+          this.setState({spinner: false})
+        }
+
+      }
+      })
+    });
+    }
+    AsyncStorage.getItem('userToken').then( value => this.setState({ token: value}))
+  }
+
+  componentDidUpdate(){
+    
   }
 
   render() {
     return (<Block style={{backgroundColor: '#FAFAFA'}}>
        <Spinner
                   visible={this.state.spinner}
-                  textContent={'Searching...'}
+                  textContent={'Loading...'}
                   textStyle={styles.spinnerTextStyle}
                 />
                 {this.renderCreateModal()}
                 {this.renderPaymentModal()}
-      <Block row space="between" style={{padding: 10}}>
+      <Block row space='between' style={{marginTop: 5}} space="between" style={{padding: 10}}>
       <Block>
         <Text style={{ fontFamily: 'HKGrotesk-Light', fontSize: 14 }} color='#CB582D'>
             TODAY'S PRICES
         </Text>
       </Block>
-      <Block row>
+      <Block row space='between' style={{marginTop: 5}}>
       <ModalSelector
           data={this.state.depotX}
-          initValue={this.state.depot.Name}
+          initValue={this.state.depot.name}
           selectStyle={styles.picker}
           selectTextStyle={styles.selectTextStyle}
           initValueTextStyle={styles.initvalueTextStyle}
@@ -941,9 +1079,9 @@ const styles = StyleSheet.create({
     borderColor: '#1917181F',
     borderRadius: 0,
     backgroundColor: '#ffffff',
-    paddingVertical: 0,
-    width: (width * 0.9) - 202,
-    height: 40
+    paddingHorizontal: 120,
+    width:  width-40,
+    height: 50
   },
   product: {
     height: 40,
@@ -960,6 +1098,12 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderRadius: 0,
     backgroundColor: '#ffffff'
+  },
+  nobutton: {
+   width: (width /3) - (theme.SIZES.BASE * 2 + 2.5),
+    height: theme.SIZES.BASE * 3,
+    shadowRadius: 0,
+    shadowOpacity: 0, 
   },
   selected: {
     backgroundColor: nowTheme.COLORS.BLACK,

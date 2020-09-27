@@ -1,51 +1,68 @@
-import React from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { ImageBackground, Image, StyleSheet, StatusBar, Dimensions, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Block, Button, Text, theme } from 'galio-framework';
 import AsyncStorage from '@react-native-community/async-storage'
+import { validateAll } from 'indicative/validator';
 const { height, width } = Dimensions.get('screen');
 import { prod, nowTheme } from '../constants/';
-import { HeaderHeight } from '../constants/utils';
+import Spinner from 'react-native-loading-spinner-overlay';
 import Input from '../components/Input';
 import Icon from '../components/Icon';
+
+import { AuthContext } from '../helpers/authContext';
 
 const DismissKeyboard = ({ children }) => (
   <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>{children}</TouchableWithoutFeedback>
 );
-export default class Login extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      UserName: '',
-      Password: '',
-      Logins: prod.Logins
-    }
-    
-  }
-  handleLeftPress = () => {
+
+
+export default function Login ( {navigation}) {
+
+  const { signIn } = React.useContext(AuthContext);
+
+  const [email, setUserName] = useState('');
+  const [password, setPassword] = useState('');
+  const [spinner, setSpinner] = useState(false);
+  const [SignUpErrors, setSignUpErrors] = useState({});
+  const handleLeftPress = () => {
     const { navigation } = this.props;
     return navigation.goBack(null);
   };
 
-  Login = async () => {
-    const { navigation } = this.props;
+  const Login = async () => {
     try {
-      var Login = this.state.Logins.find(u => u.UserName.toLowerCase() == this.state.UserName.toLowerCase() && u.Password.toLowerCase() == this.state.Password.toLowerCase())
-      console.log('user' + Login.UserId)
-      if(Login !== null) {
-      AsyncStorage.setItem(
-        '@UserId',
-        Login.UserId.toString()
-      ).then(
-        navigation.navigate('Home')
-      )
-      
-       }
+      const rules = {
+        email: 'required|email',
+        password: 'required|string|min:6|max:40'
+    };
+
+    const data = { email, password };
+    console.log(data);
+    const messages = {
+        required: field => `${field} is required`,
+        'UserName.alpha': 'Username contains unallowed characters',
+        'email.email': 'Please enter a valid email address',
+        'Password.min': 'Wrong Password?'
+    };
+
+    validateAll(data, rules, messages)
+        .then(() => {
+            console.log('success sign in');
+            setSpinner(true);
+            signIn({ email, password });
+            setSpinner(false)
+        })
+        .catch(err => {
+            const formatError = {};
+            err.forEach(err => {
+                formatError[err.field] = err.message;
+            });
+            setSignUpErrors(formatError);
+        });
     } catch (error) {
       // Error saving data
     }
   }
-  render() {
-    const { navigation } = this.props;
 
     return (
       <DismissKeyboard>
@@ -57,12 +74,27 @@ export default class Login extends React.Component {
               name={'chevron-left'}
               family="octicon"
               size={20}
-              onPress={this.handleLeftPress}
+              onPress={handleLeftPress}
               color={nowTheme.COLORS.ICON}
             />
           </Block>
+          <Spinner
+                  visible={spinner}
+                  textContent={'Loading...'}
+                  textStyle={styles.spinnerTextStyle}
+                />
           <Block space="between" style={styles.padded}>
             <Block>
+              { (SignUpErrors.email != undefined || SignUpErrors.password != undefined) ? (
+              <Block style={{marginLeft: 15, marginRight: 15, marginBottom:5, backgroundColor: 'red', padding: 10}}>
+              <Text size={14} style={{fontFamily: 'HKGrotesk-Bold', color: 'white'}}>
+            {SignUpErrors.email}
+            </Text>
+            <Text size={14} style={{fontFamily: 'HKGrotesk-Bold', color: 'white'}}>
+            {SignUpErrors.password}
+            </Text>
+              </Block>) : (<Block />)
+              }
             <Block>
             <Text size={28} style={{marginLeft: 21, marginBottom:5, fontFamily: 'HKGrotesk-Bold'}}>
             Log In to continue
@@ -80,9 +112,7 @@ export default class Login extends React.Component {
                     color="black"
                     style={styles.input}
                     placeholder="Enter email here"
-                    onChangeText={(text) => {
-                      this.setState({UserName: text})
-                    }}
+                    onChangeText={setUserName}
                     noicon
                 />
                 </Block>
@@ -95,9 +125,7 @@ export default class Login extends React.Component {
                     noicon
                     color="black"
                     style={styles.input}
-                    onChangeText={(text) => {
-                      this.setState({Password: text})
-                    }}
+                    onChangeText={setPassword}
                     password
                 />
                 </Block>
@@ -116,7 +144,7 @@ export default class Login extends React.Component {
                   shadowless
                   style={styles.button}
                   color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.Login()}
+                  onPress={() => Login()}
                 >
                   <Text
                     style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
@@ -133,7 +161,7 @@ export default class Login extends React.Component {
       </Block>
       </DismissKeyboard>
     );
-  }
+  
 }
 
 const styles = StyleSheet.create({

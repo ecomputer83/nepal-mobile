@@ -2,25 +2,26 @@ import React from "react";
 import { StyleSheet } from "react-native";
 import PropTypes from 'prop-types';
 
-import { Input } from "galio-framework";
+import {Block, Input, Text} from "galio-framework";
 
 import Icon from './Icon';
 import { nowTheme } from "../constants";
 
 class ArInput extends React.Component {
   render() {
-    const { shadowless, noicon, success, error, primary } = this.props;
+    const { shadowless, noicon, success, error, primary, errorMessage } = this.props;
 
     const inputStyles = [
       styles.input,
       !shadowless,
       success && styles.success,
-      error && styles.error,
+      (error || errorMessage) && styles.error,
       primary && styles.primary,
       {...this.props.style}
     ];
 
     return (
+      <Block>
       <Input
         placeholder="write something here"
         placeholderTextColor={nowTheme.COLORS.MUTED}
@@ -36,6 +37,10 @@ class ArInput extends React.Component {
         }
         {...this.props}
       />
+      {(errorMessage) ? (<Text size={10} style={{color: nowTheme.COLORS.INPUT_ERROR, lineHeight: 10}}>
+        {errorMessage}
+            </Text>) : (<Block />)}
+      </Block>
     );
   }
 }

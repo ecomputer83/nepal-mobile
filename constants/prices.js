@@ -26,7 +26,7 @@ const Orders = [{OrderId: "PO68876", Quantity: 33000, Price: 6550500.00, Product
  {OrderId: "PO74460", Quantity: 33000,  Price: 6750500.00, ProductId: 2, ProductName: "PMS", Depot: 2, DepositDate: '22/03/2020', DepotName: "Oghere", Status: "Unconfirmed",
  Programing: []}]
 
- const Filters = [{Name: "All", Status: 1}, {Name: "Unconfirmed", Status: 0}, {Name: "Confirmed", Status: 0}]
+ const Filters = [{Id: 2, Name: "All", Status: 1}, {Id: 0, Name: "Unconfirmed", Status: 0}, {Id: 1, Name: "Confirmed", Status: 0}]
 
  const Marketers = [{Name: "BKO Olatunde Enterprises", Quantity: 233000}, {Name: "HARTIZ Global", Quantity: 203000},{Name: "Fuel4All International", Quantity: 183000},{Name: "Olaoluwa & Sons", Quantity: 166000},{Name: "God is Good Energy Services", Quantity: 124000}]
 

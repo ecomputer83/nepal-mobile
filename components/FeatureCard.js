@@ -26,7 +26,7 @@ export default class FeatureCard extends React.Component {
                   fontFamily: 'HKGrotesk-SemiBoldLegacy'
                 }}
               >
-                {item.TruckNo}
+                {item.truckNo}
                   </Text>
             <Text
                 style={{
@@ -50,7 +50,7 @@ export default class FeatureCard extends React.Component {
                   fontFamily: 'HKGrotesk-SemiBoldLegacy',
                 }}
               >
-                {item.Destination.substring(0, 24)}
+                {item.destination.substring(0, 24)}
                   </Text>
             <Text
                 style={{
@@ -59,7 +59,7 @@ export default class FeatureCard extends React.Component {
                   fontFamily: 'HKGrotesk-SemiBoldLegacy',
                 }}
               >
-                {item.Quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres
+                {item.quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres
                   </Text>
                 </Block>
                   </Block>

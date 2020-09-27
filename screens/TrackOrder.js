@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet,  Dimensions, Image, Alert, FlatList, Modal, View, TouchableHighlight } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage'
-import { Block, theme,Button as GaButton, Text } from "galio-framework";
+import { Block, theme,Button as GaButton, Button, Text } from "galio-framework";
 import {OrderCard, Input, Icon } from "../components";
 import { prod, Images, nowTheme } from '../constants';
 import Spinner from 'react-native-loading-spinner-overlay';
@@ -11,6 +11,7 @@ import TextInputMask from 'react-native-text-input-mask';
 import FloatingActionButton from "react-native-floating-action-button";
 import Programming from "../screens/Programming"
 import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
+import HttpService from "../services/HttpService";
 
 const { width, height } = Dimensions.get("screen");
 const iPhoneX = () =>
@@ -43,8 +44,11 @@ const IndicatorStyles = {
   class TrackOrder extends React.Component {
     
     state = {
+        DailyPrices: [],
         Filters: prod.Filters,
-        Orders: prod.Orders,
+        Orders: [],
+        OriginalOrders: [],
+        OrderId: 0,
         modalCreateVisible: false,
         modalPaymentVisible: false,
         modalProgramVisible:  false,
@@ -67,28 +71,32 @@ const IndicatorStyles = {
       Balance: 0,
       ipman: 0,
       isnoteligible: false,
-      isfetched: false
+      isfetched: false,
+      Depots: [],
+      token: null,
+      BankName: null,
+      Reference: null
     }
     pinInput = React.createRef();
 
     readData = async () => {
-      return await AsyncStorage.getItem('@UserId');
+      return await AsyncStorage.getItem('user');
     }
     pickerProduct(index){
-        prod.DailyPrices.map( (v,i)=>{
+        this.state.DailyPrices.map( (v,i)=>{
          if( index === i ){
            this.setState({
-           product: prod.DailyPrices[index],
-           unitPrice: prod.DailyPrices[index].Price,
+           product: this.state.DailyPrices[index],
+           unitPrice: this.state.DailyPrices[index].price,
           })
          }
         })
     }
     pickerDepot(index){
-      prod.Depots.map( (v,i)=>{
+      this.state.Depots.map( (v,i)=>{
        if( index === i ){
          this.setState({
-         depot: prod.Depots[index]
+         depot: this.state.Depots[index]
         })
        }
       })
@@ -96,6 +104,8 @@ const IndicatorStyles = {
     setModalCreateVisible(visible) {
       if(visible){
         this.setState({quantity: "33000"})
+      }else{
+        
       }
         this.setState({modalCreateVisible: visible});
       }
@@ -108,14 +118,17 @@ const IndicatorStyles = {
         this.setState({modalProgramVisible: visible});
       }
 
-      setIncrease(){
-        var quantity = parseInt(this.state.quantity) + 1000
+      setIncrease(number){
+      
+        var quantity = parseInt(this.state.quantity) + number
         this.setState({quantity: quantity.toString(), ifInputupdated: true})
       }
-
-      setDecrease(){
-        var quantity = parseInt(this.state.quantity) - 1000
+  
+      setDecrease(number){
+        if(parseInt(this.state.quantity) >= number){
+        var quantity = parseInt(this.state.quantity) - number
         this.setState({quantity: quantity.toString(), ifInputupdated: true})
+        }
       }
 
       onStepPress = position => {
@@ -125,14 +138,94 @@ const IndicatorStyles = {
         let ifup = false;
         var currentPosition = this.state.currentPosition
           if(last){
-              var TotalAmount = this.state.quantity * this.state.product.Price;
+              var TotalAmount = this.state.quantity * this.state.product.price;
               this.setState({TotalAmount: TotalAmount})
           }
           console.log(this.state.ipman)
         if(last && this.state.ipman == 1){
-          
+          var model = {
+            ProductId: this.state.product.id,
+            DepotId: this.state.depot.id,
+            Quantity: parseInt(this.state.quantity),
+            TotalAmount: parseInt(this.state.quantity * this.state.product.price)
+          } 
+          if(this.state.DepotId == null)
+          {
+            console.log(model)
+             HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(value => 
+             {
+               console.log(value);
+               this.setState({OrderId: value})
+               HttpService.GetAsync('api/Order', this.state.token).then(response => {
+                console.log(response)
+                response.json().then(value => {
+                  //console.log(value)
+                  this.setState({Orders: value, OriginalOrders: value});
+      
+                  
+                })
+                
+              })
+              this.setState({
+                unitPrice: null,
+                TotalAmount: "0",
+                depotX: prod.Depots.map((d, i) => {
+                  return { key: i, label: d.Name}
+                }),
+                depot: prod.Depots[0],
+                spinner: false, CompletePayment: false
+              });
+             }));
+         }else{
+             HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => response.json().then(value => 
+             {
+               console.log(value);
+               HttpService.GetAsync('api/Order', this.state.token).then(response => {
+                console.log(response)
+                response.json().then(value => {
+                  //console.log(value)
+                  this.setState({Orders: value, OriginalOrders: value});
+      
+                  
+                })
+                
+              })
+              this.setState({
+                unitPrice: null,
+                TotalAmount: "0",
+                depotX: prod.Depots.map((d, i) => {
+                  return { key: i, label: d.Name}
+                }),
+                depot: prod.Depots[0],
+                spinner: false, CompletePayment: false
+              });
+               //this.setState({DepotId: value})
+             }));
+         }
           currentPosition = this.state.currentPosition + 2
         }else {
+          if(this.state.currentPosition == 3){
+            var model = {
+              ProductId: this.state.product.id,
+              DepotId: this.state.depot.id,
+              Quantity: parseInt(this.state.quantity),
+              TotalAmount: parseInt(this.state.TotalAmount)
+            } 
+            if(this.state.DepotId == null)
+            {
+               HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(value => 
+               {
+                 console.log(value);
+                 this.setState({OrderId: value})
+               }));
+           }else{
+               HttpService.PutAsync('api/Order/' + this.state.DepotId, model, this.state.token).then(response => response.json().then(value => 
+               {
+                 console.log(value);
+                 //this.setState({OrderId: value})
+               }));
+           }
+         }
           currentPosition = this.state.currentPosition + 1
         }
         if(currentPosition == 2){
@@ -148,26 +241,40 @@ const IndicatorStyles = {
         }
       }
       Proceed(){
-          if(this.state.currentState == 0){
-            var currentPosition = this.state.currentState + 1
-            this.setState({currentState: currentPosition})
-          }else{
-               //perform logic
-               if(this.state.TotalAmount != 0) {
-                this.setState({
-                  spinner: true,depot: null,
-                  product : null,
-                  productIndex: null,
-                  depotIndex: null,
-                  unitPrice: null,
-                  TotalAmount: "0"
-                });
-                setTimeout(() => {
-                  this.setState({ spinner: false, CompletePayment: true});
-                }, 3000);
-            }
-          }
-      }
+        //perform logic
+        if(this.state.BankName != null && this.state.Reference != null) {
+         this.setState({spinner: true})
+         //validate payment 
+
+         var model = {
+           orderId: this.state.OrderId,
+           totalAmount: parseInt(this.state.TotalAmount),
+           type: 3,
+           name: this.state.BankName,
+           reference: this.state.Reference
+         }
+         console.log(model)
+         HttpService.PostAsync('api/Credit', model, this.state.token).then( resp => {
+           if(resp.status == 200){
+         this.setState({
+           depot: null,
+           product : null,
+           productIndex: null,
+           depotIndex: null,
+           unitPrice: null,
+           TotalAmount: "0",
+           depotX: prod.Depots.map((d, i) => {
+             return { key: i, label: d.Name}
+           }),
+           depot: prod.Depots[0],
+           spinner: false, CompletePayment: true
+         });
+
+       }
+       })
+     }
+}
+
 
       edit() {
         let currentPosition = 0
@@ -178,14 +285,25 @@ const IndicatorStyles = {
           this.setModalPaymentVisible(false);
           this.setModalCreateVisible(false);
           //this.setModalProgramVisible(true);
-            this.props.navigation.navigate('Programming', { isNew: true, quantity: this.state.quantity})
+            this.props.navigation.navigate('OrderDetail', { orderId: this.state.OrderId})
     }
     requestcredit = () => {
       if(this.state.Balance >= parseInt(this.state.TotalAmount)){
-        this.setModalPaymentVisible(false);
-        this.setModalCreateVisible(false);
-      
-        Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval")
+        
+        if(this.state.OrderId != 0){
+          this.setState({spinner: true})
+          var model = {
+            orderId: this.state.OrderId,
+            totalAmount: parseInt(this.state.TotalAmount),
+            type: 2
+          }
+          HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
+            this.setModalPaymentVisible(false);
+            this.setModalCreateVisible(false);
+            this.setState({spinner: false})
+            Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
+          })
+        }
       }
       else {
         this.setState({isnoteligible: true})
@@ -216,9 +334,9 @@ const IndicatorStyles = {
         filters[selectedFilterIndex].Status = stat;
         let filteredOrder = [];
         if(item.Name != 'All'){
-            filteredOrder = prod.Orders.filter(o => o.Status == item.Name);
+            filteredOrder = this.state.OriginalOrders.filter(o => o.status == item.Id);
         }else{
-            filteredOrder = prod.Orders;
+            filteredOrder = this.state.OriginalOrders;
         }
         console.log(filters);
         this.setState({Orders: filteredOrder, Filters: filters});
@@ -226,12 +344,12 @@ const IndicatorStyles = {
 
     renderProducts = () => {
       let bgColor = ["#303E4F", "#437FB4", "#909090", "#CB582D", "#E37E2E"]
-        return prod.DailyPrices.map((p, i)=>{
+        return this.state.DailyPrices.map((p, i)=>{
             const productStyle = [styles.product, {backgroundColor: bgColor[i]}, (this.state.productIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>
                 <Block width={width * 0.9} row space='between' style={productStyle}>
-                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Product}</Text>
-                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#f4f4f4' }}>₦{p.Price}/{p.Unit}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.product}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#f4f4f4' }}>₦{p.price}/{p.Unit}</Text>
                 </Block>
             </TouchableHighlight>)
         })
@@ -239,11 +357,11 @@ const IndicatorStyles = {
 
     renderDepots = () => {
       
-        return prod.Depots.map((p, i)=>{
+        return this.state.Depots.map((p, i)=>{
             const productStyle = [styles.product, (this.state.depotIndex == i) && styles.selected]
             return (<TouchableHighlight onPress={() => this.setDepot(p, i)}>
                 <Block width={width * 0.9} middle style={productStyle}>
-                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.Name}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.name}</Text>
                 </Block>
             </TouchableHighlight>)
         })
@@ -276,15 +394,14 @@ const IndicatorStyles = {
 
       renderCreateModal = () => {
         if(!this.state.isfetched){
-        this.readData().then( userid => {
-          if(userid !== null){
-            
-            var user = prod.Users.find(u => u.UserId == parseInt(userid))
-            console.log(user.ipman)
-            this.setState({Name: user.CompanyName,
-            Limit: user.limit,
-            Balance: user.balance,
-            ipman: user.ipman,
+        this.readData().then( resp => {
+          if(resp !== null){
+        
+            var user = JSON.parse(resp);
+            this.setState({Name: user.businessName,
+            Limit: user.creditLimit,
+            Balance: user.creditBalance,
+            ipman: user.isIPMAN,
             isfetched: true
             })
           }
@@ -334,48 +451,167 @@ const IndicatorStyles = {
                                 </Block>
                   : (currentPosition == 2)   ?             
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-      <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
-          <Block row>
-          <GaButton
-                          shadowless
-                          style={styles.increbutton}
-                          color={nowTheme.COLORS.BACKGROUND}
-                          onPress={() => this.setIncrease()}
+  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
+
+      <Block row space='between' style={{marginTop: 5}}>
+      <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(33000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +33,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(40000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +40,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(45000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +45,000
+                  </Text>
+                </Button>
+        </Block>
+        <Block row space='between' style={{marginTop: 5}}>
+        <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(60000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +60,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.setIncrease(90000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    +90,000
+                  </Text>
+                </Button>
+        </Block>
+      <Block row space='between' style={{marginTop: 5}}>
+      
+                <Input
+
+                    placeholder="Quantity"
+                    color="black"
+                    style={styles.Qtyinputs}
+                    value={quantity}
+                    onChangeText={(text) => {
+                      this.setState({quantity: text, ifInputupdated: true})
+                    }}
+                    keyboardType="numeric"
+                    noicon
+                    editable = {false}
+                  />
+
+<GaButton
+                      shadowless
+                      style={[styles.increbutton, {opacity: 0.35}]}
+                      color='#23C9F165'
+                      onPress={() => this.setDecrease()}
+                  >
+                      <Text
+                          style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
+                          color={theme.COLORS.BLACK}
                       >
-                          <Text
-                              style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
-                              color={theme.COLORS.WHITE}
-                          >
-                              +
-                          </Text>
-                      </GaButton>   
-                    <Input
-                        placeholder="Quantity"
-                        color="black"
-                        style={styles.Qtyinputs}
-                        value={quantity}
-                        onChangeText={(text) => {
-                          this.setState({quantity: text, ifInputupdated: true})
-                        }}
-                        keyboardType="numeric"
-                        noicon
-                      />
-  
-  <GaButton
-                          shadowless
-                          style={[styles.increbutton, {opacity: 0.35}]}
-                          color='#23C9F165'
-                          onPress={() => this.setDecrease()}
-                      >
-                          <Text
-                              style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
-                              color={theme.COLORS.BLACK}
-                          >
-                              -
-                          </Text>
-                      </GaButton>
-                    </Block>
-                    </Block>
+                          -
+                      </Text>
+                  </GaButton>
+                </Block>
+                <Block row space='between' style={{marginTop: 5}}>
+      <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(33000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -33,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(40000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -40,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(45000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -45,000
+                  </Text>
+                </Button>
+        </Block>
+        <Block row space='between' style={{marginTop: 5}}>
+        <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(60000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -60,000
+                  </Text>
+                </Button>
+                <Button
+                  shadowless style={styles.nobutton}
+                  color={nowTheme.COLORS.DARK}
+                  onPress={() => this.setDecrease(90000)}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={nowTheme.COLORS.WHITE}
+                  >
+                    -90,000
+                  </Text>
+                </Button>
+        </Block>
+                </Block>
                     : (currentPosition == 3) ?
                     <Block width={width * 0.9} style={{ marginBottom: 5 }}>
       <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Do you have a discount Code? Enter here...</Text>
@@ -391,7 +627,7 @@ const IndicatorStyles = {
                         <Block center style={{width: (width * 0.9), marginTop: 25, padding: 10, backgroundColor: '#121112'}}>
                     <Text style={{fontSize: 14, lineHeight: 16, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>₦{TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres</Text>
-                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{product.Product} (ex {depot.Name})</Text>
+                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{product.product} (ex {depot.name})</Text>
                     <TouchableHighlight onPress={() => this.edit()}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15}}>Edit</Text></TouchableHighlight>
 
                         </Block>
@@ -411,7 +647,7 @@ const IndicatorStyles = {
 
 
                         <Block style={{width: (width * 0.9), marginTop: 25, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
-                        <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.Product} (ex {depot.Name})</Text>
+                        <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.product} (ex {depot.Name})</Text>
                     
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Order Quantity:</Text>
@@ -419,19 +655,15 @@ const IndicatorStyles = {
                     </Block>
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>List Unit Price:</Text>
-                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.Price}</Text>
+                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.price}</Text>
                     </Block>
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Discount Offered:</Text>
-                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0.5</Text>
-                    </Block>
-                    <Block row space='between'>
-                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>IPMAN Discount:</Text>
-                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0.5</Text>
+                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0</Text>
                     </Block>
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Net Unit Price:</Text>
-                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.Price - 1}</Text>
+                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.price}</Text>
                     </Block>
                     <Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>Total Order Amount</Text>
                     <Text style={{fontSize: 14, lineHeight: 16, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>₦{TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
@@ -504,7 +736,7 @@ const IndicatorStyles = {
                                           style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
                                           color={theme.COLORS.WHITE}
                                       >
-                                          Proceed To Payment
+                                          Submit Bank Deposit
                                       </Text>
                                   </GaButton>
                                 </Block>) 
@@ -568,7 +800,7 @@ const IndicatorStyles = {
               }}>
             { (!CompletePayment) ?  
               <Block  flex center style={{backgroundColor: '#FAFAFA', paddingTop: iPhoneX() ? theme.SIZES.BASE * 3.5 : theme.SIZES.BASE }}>
-                <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
+                <Block row space='between' style={{marginTop: 5}} space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
             <Text style={{ fontFamily: 'HKGrotesk-Bold', fontSize: 20 }}> Make Payment - Step {currentState + 1}</Text>
                   <Icon
                     name={'x'}
@@ -580,83 +812,33 @@ const IndicatorStyles = {
                 </Block>
                 <Block  width={width * 0.9} style={{ padding: 2 }}>
                   <Block>
-                  { (currentState == 0) ?
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-                                <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium'}}>Enter Card details</Text>
+                                <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium'}}>Enter Bank Teller details</Text>
                                 <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
-                Your card details are securely saved with Paystack so you don't have to enter it again
+                You are expected to make payment at any bank, please provide the payment information
                 </Text>
                 <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
-                                <TextInputMask
-                                    refInput={ref => { this.input = ref }}
-                                    onChangeText={(formatted, extracted) => {
-                                      this.setState({CardNumber: extracted})
-                                    }}
-                                    mask={"[0000] [0000] [0000] [0000]"}
-                                    placeholder="Enter card number here"
-                                    style={styles.inputs}
-                                    keyboardType="numeric"
-                                />
+                <Input
+                        left
+                        color="black"
+                        style={styles.inputs}
+                        placeholder="Enter bank name"
+                        onChangeText={text => this.setState({BankName: text})}
+                        noicon
+                    />
                               </Block>
-                              <Block width={width * 0.9} row style={{ marginBottom: 5, marginLeft: 5, }} space="between">
-                              <Block width={width * 0.48}>
-                              <TextInputMask
-                                    refInput={ref => { this.input = ref }}
-                                    onChangeText={(formatted, extracted) => {
-                                      this.setState({ExpiryDate: formatted})
-                                    }}
-                                    mask={"[00] / [00]"}
-                                    placeholder="MM / YY"
-                                    style={styles.inputs}
-                                    keyboardType="numeric"
-                                />
-                              </Block>
-                              <Block width={width * 0.4} style={{ marginBottom: 5 }}>
-                              <TextInputMask
-                                    refInput={ref => { this.input = ref }}
-                                    onChangeText={(formatted, extracted) => {
-                                      this.setState({CVV: extracted})
-                                    }}
-                                    mask={"[000]"}
-                                    placeholder="CVC"
-                                    style={styles.inputs}
-                                    keyboardType="numeric"
-                                />
-                              </Block>
-                              </Block>
+               <Block width={width * 0.9} space='between' style={{marginTop: 5}} style={{ marginBottom: 5, marginLeft: 5, }} space="between">
+                  <Input
+                        left
+                        color="black"
+                        style={styles.inputs}
+                        placeholder="Enter teller number or payment refrence number"
+                        onChangeText={text => this.setState({Reference: text})}
+                        noicon
+                    />
                               
                                 </Block>
-                  : (currentState == 1) ?
-                  <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-                  <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium', marginBottom: 5}}>Verify Card</Text>
-                                <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
-                Please enter 4 digit pin to authorize
-                </Text> 
-                <Block center width={width * 0.9} style={{ marginTop: 25, marginBottom: 35 }}> 
-                <SmoothPinCodeInput
-                cellStyle={{
-                    borderWidth: 0,
-                    borderRadius: 5,
-                    backgroundColor: '#EDEDED',
-                  }}
-                  cellStyleFocused={{
-                    borderWidth: 0,
-                    backgroundColor: '#EDEDED',
-                  }}
-            ref={this.pinInput}
-            value={code}
-            onTextChange={code => this.setState({ code })}
-            onFulfill={this._checkCode}
-            
-            
-            
-            onBackspace={() => console.log('No more back.')}
-            />
-            </Block>
-
-                                  
-                                </Block>
-                  : <Block />}
+                  
                   <Block style={{marginBottom:  10, marginTop: 20}}></Block>
                                 <Block width={width * 0.9} style={{marginBottom: 25}} right>
                                 
@@ -682,6 +864,7 @@ const IndicatorStyles = {
                   
                 </Block>
               </Block>
+              </Block>
               :
             <Block width={width * 0.9} height={height} center style={{justifyContent: 'center'}}>
                 <Block>
@@ -689,7 +872,7 @@ const IndicatorStyles = {
                 </Block>
                 <Block style={{marginTop: 10}}>
                 <Text size={19} style={{color: '#2C4453', lineHeight: 26, fontFamily: 'ProductSans-Bold'}}>
-                    Great work Business Name
+                    Great work {this.state.businessName}
                 </Text>
                 </Block>
                 <Block style={{marginTop: 10}}>
@@ -721,7 +904,7 @@ const IndicatorStyles = {
                                }
             </Modal>);
       }
-
+    
     renderChildFilter = () => {
         return this.state.Filters.map((v,i) => {
             let Background = (v.Status == 1) ? '#FFFFFF': '#EDEDED';
@@ -741,12 +924,34 @@ const IndicatorStyles = {
         )
     }
 
+    componentDidMount(){
+      AsyncStorage.getItem('userToken').then( value => {
+        this.setState({spinner: true, token: value});
+
+        HttpService.GetAsync('api/Order', value).then(response => {
+          console.log(response)
+          response.json().then(value => {
+            //console.log(value)
+            this.setState({Orders: value, OriginalOrders: value});
+
+            
+          })
+          this.setState({spinner: false});
+        })
+      })
+      AsyncStorage.getItem('misc').then(value => {
+        console.log(value)
+        this.setState(JSON.parse(value));
+      })
+      
+    }
+
     render () {
         return (
             <Block flex center>
                 <Spinner
                   visible={this.state.spinner}
-                  textContent={'Searching...'}
+                  textContent={'Loading...'}
                   textStyle={styles.spinnerTextStyle}
                 />
                 {this.renderCreateModal()}
@@ -770,7 +975,7 @@ const IndicatorStyles = {
 
                         <Block flex={0.92}>
                         <FlatList data={this.state.Orders} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
-                            return <OrderCard item={item} />
+                            return <OrderCard item={item} Navigation={this.props.navigation}/>
                         }}/>
                         </Block>
                     </Block>
@@ -799,9 +1004,9 @@ const styles = StyleSheet.create({
         borderColor: '#1917181F',
         borderRadius: 0,
         backgroundColor: '#ffffff',
-        paddingVertical: 0,
-        width: (width * 0.9) - 202,
-        height: 40
+        paddingHorizontal: 120,
+        width:  width-40,
+        height: 50
       },
       searchbutton: {
         width: (width  * 0.2),
@@ -862,7 +1067,12 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         color: '#ffffff'
       },
-
+      nobutton: {
+        width: (width /3) - (theme.SIZES.BASE * 2 + 2.5),
+        height: theme.SIZES.BASE * 3,
+        shadowRadius: 0,
+        shadowOpacity: 0,
+      },
       selected: {
         backgroundColor: nowTheme.COLORS.BLACK,
         
