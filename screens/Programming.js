@@ -181,12 +181,16 @@ componentDidMount(){
   renderOrders =() => {
     return this.state.Orders.filter(c=> c.quantity > ((this.programbyorderId(c.orderId).length > 0) ? this.calculatefromProgram(c.orderId) : 0)).map((v, i) => {
       var remainquantity = v.quantity - ((this.programbyorderId(v.orderId).length > 0) ? this.calculatefromProgram(v.orderId) : 0)
+      if(remainquantity > 0) {
       return (<TouchableHighlight onPress={() => this.setOrder(v, remainquantity)}>
               <Block width={width * 0.9} row space='between' style={styles.product}>
                   <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{v.orderNo}</Text>
                   <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#AAAAAA' }}>{remainquantity}</Text>
               </Block>
           </TouchableHighlight>)
+      }else{
+        <Block />
+      }
     })
   }
   renderPrograms = () => {

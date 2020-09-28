@@ -547,7 +547,7 @@ componentDidMount(){
           <Block row style={{zIndex: 3, position: 'absolute', top: '70%', right: '5%'}}>
         {(this.state.isNew && this.state.Credit == null && this.state.Order == null) ?
         <Block />
-          :
+          : (this.state.Order.quantity > (this.state.programs.length > 0 ? this.state.programs.map(o=>o.quantity).reduce((a,c)=>a+c): 0)) ?
         <FloatingActionButton
           iconName="plus"
           iconType="AntDesign"
@@ -556,7 +556,7 @@ componentDidMount(){
           rippleColor={nowTheme.COLORS.WHITE}
           iconColor={nowTheme.COLORS.WHITE}
           onPress = {() => this.setModalVisible(true)}
-        /> }
+        /> :  <Block /> }
         {(this.state.programs.length != 0 && this.state.isNew) ?
         <FloatingActionButton
           iconName="check"
