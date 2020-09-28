@@ -35,7 +35,7 @@ export default function Login ( {navigation}) {
         email: 'required|email',
         password: 'required|string|min:6|max:40'
     };
-
+    setSpinner(true);
     const data = { email, password };
     console.log(data);
     const messages = {
@@ -48,7 +48,7 @@ export default function Login ( {navigation}) {
     validateAll(data, rules, messages)
         .then(() => {
             console.log('success sign in');
-            setSpinner(true);
+            
             signIn({ email, password });
             setSpinner(false)
         })
@@ -58,6 +58,7 @@ export default function Login ( {navigation}) {
                 formatError[err.field] = err.message;
             });
             setSignUpErrors(formatError);
+            setSpinner(false)
         });
     } catch (error) {
       // Error saving data

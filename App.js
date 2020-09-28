@@ -8,6 +8,7 @@ import { Images, nowTheme } from './constants';
 import AsyncStorage from '@react-native-community/async-storage';
 import { AuthContext } from './helpers/authContext';
 import HttpService from './services/HttpService';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 
 // cache app images
@@ -46,6 +47,11 @@ export default function App({ navigation }) {
             isSignout: true,
             userToken: null,
           };
+        case 'LOADING_OUT':
+          return {
+            ...prevState,
+            isLoading: false
+          }
       }
     },
     {
@@ -61,6 +67,7 @@ export default function App({ navigation }) {
       let userToken;
 
       try {
+        
         userToken = await AsyncStorage.getItem('userToken');
         let response = await HttpService.GetAsync('api/Account/user', userToken)
   
@@ -72,10 +79,12 @@ export default function App({ navigation }) {
             'user',
             JSON.stringify(json)
           )
-
+          
           dispatch({ type: 'RESTORE_TOKEN', token: userToken });
           }
+          dispatch({type: 'LOADING_OUT'})
       } catch (e) {
+        dispatch({type: 'LOADING_OUT'})
         // Restoring token failed
         dispatch({ type: 'SIGN_OUT' })
       }
@@ -106,6 +115,10 @@ export default function App({ navigation }) {
                 password: data.password
               }
           );
+          console.log(response);
+          if(response.status == 400){
+            alert("Invalid login attempt");
+          }else{
           let json = await response.json();
           token = json.token;
           console.log(token);
@@ -123,10 +136,12 @@ export default function App({ navigation }) {
                 JSON.stringify(json)
               )
           }
+        }
           }else{
             console.log(data);
 
           }
+        
         } catch (error) {
           console.error(error);
         }
@@ -148,6 +163,10 @@ export default function App({ navigation }) {
       return (
         <AuthContext.Provider value={authContext}>
         <GalioProvider theme={nowTheme}>
+        <Spinner
+                  visible={state.isLoading}
+                  textContent={'Loading...'}
+                />
           <Block flex>
           {state.userToken != null ? (
             <Screens />

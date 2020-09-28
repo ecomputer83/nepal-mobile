@@ -48,7 +48,7 @@ class Home extends React.Component {
     super(props);
     this.state = {
       DailyPrices: [],
-      Articles: Article,
+      Articles: [],
       OrderId: 0,
       modalCreateVisible: false,
         modalPaymentVisible: false,
@@ -911,6 +911,7 @@ class Home extends React.Component {
   }
   
   componentDidMount(){
+
     if(this.state.DailyPrices != null){
       HttpService.GetAsync('api/Misc').then(response => {
         
@@ -926,12 +927,21 @@ class Home extends React.Component {
         if(this.state.DailyPrices.length > 0){
           this.setState({spinner: false})
         }
+        AsyncStorage.getItem('userToken').then( value => {
+          this.setState({ token: value})
+          HttpService.GetAsync('api/article', value).then(response => {
+            response.json().then(art => {
+              this.setState({ Articles: art});
+            })
+          })
+        })
+        
 
       }
       })
     });
     }
-    AsyncStorage.getItem('userToken').then( value => this.setState({ token: value}))
+    
   }
 
   componentDidUpdate(){

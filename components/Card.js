@@ -33,7 +33,7 @@ class Card extends React.Component {
       <Block row={horizontal} card flex style={cardContainer}>
         <TouchableWithoutFeedback onPress={() => {}}>
           <Block style={imgContainer}>
-            <Image resizeMode="cover" source={item.image} style={imageStyles} />
+            <Image resizeMode="cover" source={{uri: item.imageFile}} style={imageStyles} />
           </Block>
         </TouchableWithoutFeedback>
         <TouchableWithoutFeedback onPress={() => {}}>
@@ -66,7 +66,7 @@ class Card extends React.Component {
                     size={10}
                     color={nowTheme.COLORS.TEXT}
                   >
-                    {item.body}
+                    {item.body.substring(0, 176)}...
                   </Text>
                 </Block>
               ) : (
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
   },
   cardTitle: {
     paddingHorizontal: 9,
-    paddingTop: 7,
+    paddingTop: 176,
     paddingBottom: 15
   },
   cardDescription: {
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
   articleButton: {
     fontFamily: 'montserrat-bold',
     paddingHorizontal: 9,
-    paddingVertical: 7
+    paddingVertical: 176
   }
 });
 
