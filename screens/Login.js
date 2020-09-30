@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { ImageBackground, Image, StyleSheet, StatusBar, Dimensions, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, StatusBar, Dimensions, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { Block, Button, Text, theme } from 'galio-framework';
 import AsyncStorage from '@react-native-community/async-storage'
 import { validateAll } from 'indicative/validator';
@@ -84,18 +84,9 @@ export default function Login ( {navigation}) {
                   textContent={'Loading...'}
                   textStyle={styles.spinnerTextStyle}
                 />
+                 <ScrollView>
           <Block space="between" style={styles.padded}>
             <Block>
-              { (SignUpErrors.email != undefined || SignUpErrors.password != undefined) ? (
-              <Block style={{marginLeft: 15, marginRight: 15, marginBottom:5, backgroundColor: 'red', padding: 10}}>
-              <Text size={14} style={{fontFamily: 'HKGrotesk-Bold', color: 'white'}}>
-            {SignUpErrors.email}
-            </Text>
-            <Text size={14} style={{fontFamily: 'HKGrotesk-Bold', color: 'white'}}>
-            {SignUpErrors.password}
-            </Text>
-              </Block>) : (<Block />)
-              }
             <Block>
             <Text size={28} style={{marginLeft: 21, marginBottom:5, fontFamily: 'HKGrotesk-Bold'}}>
             Log In to continue
@@ -115,6 +106,7 @@ export default function Login ( {navigation}) {
                     placeholder="Enter email here"
                     onChangeText={setUserName}
                     noicon
+                    errorMessage={SignUpErrors.email}
                 />
                 </Block>
                 <Block style={{marginVertical: 2.5}}>
@@ -128,6 +120,7 @@ export default function Login ( {navigation}) {
                     style={styles.input}
                     onChangeText={setPassword}
                     password
+                    errorMessage={SignUpErrors.password}
                 />
                 </Block>
               </Block>
@@ -158,6 +151,7 @@ export default function Login ( {navigation}) {
                 </Block>
             </Block>
           </Block>
+          </ScrollView>
         </Block>
       </Block>
       </DismissKeyboard>

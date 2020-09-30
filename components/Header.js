@@ -1,6 +1,6 @@
 import * as React  from 'react';
 import { withNavigation } from 'react-navigation';
-import { ImageBackground, TouchableOpacity, StyleSheet, Image, Platform, Dimensions, StatusBar } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, Image, Platform, Dimensions, StatusBar } from 'react-native';
 import AsyncStorage from '@react-native-community/async-storage'
 import { Button, Block, NavBar, Text, theme, Button as GaButton } from 'galio-framework';
 import { createIconSetFromFontello } from 'react-native-vector-icons';
@@ -37,7 +37,18 @@ function Header ({ white, title, back, bgColor, User, search, message, transpare
   const AddIconButton = ({ iconFamily, style, iconName }) => (
     <TouchableOpacity
       style={[styles.button, style]}
-      onPress={() => signOut()}
+      onPress={() => {
+        Alert.alert(
+          'Log out',
+          'Are you sure you want to log out',
+          [
+            {text: 'NO', onPress: () => console.warn('NO Pressed'), style: 'cancel'},
+            {text: 'YES', onPress: () => signOut()},
+          ]
+        );
+        
+        }
+      }
     >
      <Icon name={iconName} family={iconFamily} size={16}
         color="#ffffff"

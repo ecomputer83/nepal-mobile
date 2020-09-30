@@ -7,6 +7,7 @@ import { prod, ST, nowTheme } from '../constants';
 import Spinner from 'react-native-loading-spinner-overlay';
 import ModalSelector from 'react-native-modal-selector';
 import HttpService from '../services/HttpService';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import NaijaStates from 'naija-state-local-government';
 import { AsyncStorage } from 'react-native';
@@ -30,16 +31,23 @@ class OrderDetail extends React.Component {
     }),
     LGA: null,
     modalVisible: false,
+    modalPaymentVisible: false,
     spinner: false,
     currentState: 0,
+    currentPosition: 0,
     isNew: false,
     ifInputupdated: false,
     LGAs: [],
+    BankName: null,
+      Reference: null,
+      CreditAmount: "0",
+      CreditDate: new Date(),
     token: null,
     ipman: false,
     Balance: '0',
     orderId: 0,
-    isQuantitySet: false
+    isQuantitySet: false,
+    ShowDatePicker:  false
 }
 
 constructor(props) {
@@ -55,6 +63,7 @@ constructor(props) {
     remainQuantity: (Params.Order) ? Params.Order.quantity: 0,
     programs: [],
     TruckNo: null,
+    currentPosition: 0,
     Quantity: "0",
   Destination: null,
   State: null,
@@ -63,6 +72,11 @@ constructor(props) {
   }),
   LGA: null,
   modalVisible: false,
+  modalPaymentVisible: false,
+  BankName: null,
+      Reference: null,
+      CreditAmount: "0",
+      CreditDate: new Date(),
   spinner: false,
   currentState: 0,
   ifInputupdated: false,
@@ -70,7 +84,8 @@ constructor(props) {
   isNew: true,
   token: null,
   orderId: (Params.orderId) ? Params.orderId : 0,
-  isQuantitySet: false
+  isQuantitySet: false,
+  ShowDatePicker:  false
 }
 }
 
@@ -97,7 +112,18 @@ componentDidMount(){
     setQuantity(number){
       this.setState({Quantity: number.toString(), isQuantitySet: true, ifInputupdated: true})
     }
-
+    showDatePicker = () => {
+      this.setState({ShowDatePicker: true});
+    };
+  
+    hideDatePicker = () => {
+      this.setState({ShowDatePicker: false});
+    };
+  
+    handleConfirm = (date) => {
+      console.warn("A date has been picked: ", date);
+      this.setState({ShowDatePicker: false, CreditDate: date});
+    };
     reesetQuantity(){
       this.setState({isQuantitySet: false})
     }
@@ -108,7 +134,9 @@ componentDidMount(){
       });
       this.setState({LGAs: LGAs, State: v.label, ifInputupdated: (this.state.LGA && this.state.Destination)})
     }
-
+    setModalPaymentVisible(visible) {
+      this.setState({modalPaymentVisible: visible});
+    }
     setLGA(v){
       this.setState({LGA: v.label, ifInputupdated: (this.state.State && this.state.Destination)})
     }
@@ -201,7 +229,45 @@ componentDidMount(){
         
     };
     }
+    proceedToPayment = () => {
+      let currentPosition = 0
+        this.setState({currentPosition: currentPosition})
+      this.setModalVisible(false);
+      this.setModalPaymentVisible(true);
+  }
+  Proceed(){
+    //perform logic
+    if(this.state.BankName != null && this.state.Reference != null) {
+     this.setState({spinner: true})
+     //validate payment 
+      if(this.state.Order.totalAmount <= parseInt(this.state.CreditAmount)){
+     var model = {
+       orderId: this.state.orderId,
+       totalAmount: parseInt(this.state.CreditAmount),
+       type: 3,
+       name: this.state.BankName,
+       reference: this.state.Reference,
+       creditDate: this.state.CreditDate
+     }
+     console.log(model)
+     HttpService.PostAsync('api/Credit', model, this.state.token).then( resp => {
+       if(resp.status == 200){
+        HttpService.GetAsync('api/order/'+this.state.orderId, this.state.token)
+        .then(response => response.json().then(value => {
+          this.setState({Order: value, totalquantity: value.quantity, programs: value.programs,
+            remainQuantity: value.quantity, Credit: value.credit, spinner: false, modalPaymentVisible: false});
+        }
+    
+        ))
 
+   }
+   })
+  }else{
+    this.setState({spinner: false})
+    alert("Payment amount not must be less than "+this.state.Order.totalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'))
+  }
+  }
+}
   renderFeatures = () => {
     return (
       <Block>
@@ -221,7 +287,146 @@ componentDidMount(){
         return <DetailCard item={item} index={index} />
       }}/></Block>)
   }
+  renderPaymentModal = () => {
 
+    const {currentState, CompletePayment, code} = this.state;
+      return (<Modal
+          animationType="slide"
+          transparent={false}
+          visible={this.state.modalPaymentVisible}
+          onRequestClose={() => {
+            this.setModalPaymentVisible(false);
+          }}>
+        { (!CompletePayment) ?  
+          <Block  flex center style={{backgroundColor: '#FAFAFA', paddingTop: iPhoneX() ? theme.SIZES.BASE * 3.5 : theme.SIZES.BASE }}>
+            <Block row space='between' style={{marginTop: 5}} space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
+        <Text style={{ fontFamily: 'HKGrotesk-Bold', fontSize: 20 }}> Make Payment - Step {currentState + 1}</Text>
+              <Icon
+                name={'x'}
+                family="octicon"
+                size={20}
+                onPress={() => this.setModalPaymentVisible(false)}
+                color={nowTheme.COLORS.ICON}
+              />
+            </Block>
+            <Block  width={width * 0.9} style={{ padding: 2 }}>
+              <Block>
+              <Block width={width * 0.9} style={{ marginBottom: 5 }}>
+                            <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium'}}>Enter Bank Teller details</Text>
+                            <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
+            You are expected to make payment at any bank, please provide the payment information
+            </Text>
+            <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
+            <Input
+                    left
+                    color="black"
+                    style={styles.cardinputs}
+                    placeholder="Enter bank name"
+                    onChangeText={text => this.setState({BankName: text})}
+                    noicon
+                />
+                          </Block>
+            <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+              <Input
+                    left
+                    color="black"
+                    style={styles.cardinputs}
+                    placeholder="Amount"
+                    onChangeText={text => this.setState({CreditAmount: text})}
+                    noicon
+                    keyboardType="numeric"
+                />
+                          
+            </Block>
+           <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+              <Input
+                    left
+                    color="black"
+                    style={styles.cardinputs}
+                    placeholder="Enter teller number or payment refrence number"
+                    onChangeText={text => this.setState({Reference: text})}
+                    noicon
+                />
+                          
+            </Block>
+            <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+            <TouchableHighlight onPress={() => this.showDatePicker()}>
+              <Block width={width * 0.9} middle style={styles.datepicker}>
+                  <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{this.state.CreditDate.toDateString()}</Text>
+              </Block>
+              </TouchableHighlight>
+              <DateTimePickerModal
+        isVisible={this.state.ShowDatePicker}
+        mode="date"
+        onConfirm={this.handleConfirm}
+        onCancel={this.hideDatePicker}
+      />
+                          
+            </Block>
+              
+              <Block style={{marginBottom:  10, marginTop: 20}}></Block>
+                            <Block width={width * 0.9} style={{marginBottom: 25}} right>
+                            
+                              <GaButton
+                                  shadowless
+                                  style={styles.proceedbutton}
+                                  color={nowTheme.COLORS.PRIMARY}
+                                  onPress={() => this.Proceed()}
+                              >
+                                  <Text
+                                      style={{ fontFamily: 'HKGrotesk-Medium', fontSize: 14 }}
+                                      color={theme.COLORS.WHITE}
+                                  >
+                                      Proceed
+                                  </Text>
+                              </GaButton>
+                            
+                            </Block>
+                            
+              </Block>
+              
+            </Block>
+          </Block>
+          </Block>
+          :
+        <Block width={width * 0.9} height={height} center style={{justifyContent: 'center'}}>
+            <Block>
+                <Image source={Images.Profile} style={{ width: 56, height: 55, borderRadius: 50}} />
+            </Block>
+            <Block style={{marginTop: 10}}>
+            <Text size={19} style={{color: '#2C4453', lineHeight: 26, fontFamily: 'ProductSans-Bold'}}>
+                Great work {this.state.businessName}
+            </Text>
+            </Block>
+            <Block style={{marginTop: 10}}>
+            <Text size={15} style={{color: '#2C4453', lineHeight: 25, textAlign: 'center', fontFamily: 'ProductSans-Regular'}}>
+            Your payment has been successful and we are super grateful for the patronage. While we confirm your payment kindly proceed and program your truck
+            </Text>
+            </Block>
+            <Block style={{marginTop: 15}}>
+            <GaButton
+                                  shadowless
+                                  style={styles.nextbutton}
+                                  color={nowTheme.COLORS.PRIMARY}
+                                  onPress={() => this.saveandnavigate()}
+                              >
+                                  <Text
+                                      style={{ fontFamily: 'ProductSans-Medium', fontSize: 15 }}
+                                      color={theme.COLORS.WHITE}
+                                  >
+                                      Program truck loading
+                                  </Text>
+                            </GaButton>
+                            <TouchableHighlight onPress={() => this.backHome()}>
+                            <Text size={14} style={{color: '#23C9F1', textAlign: 'center', lineHeight: 30, fontFamily: 'ProductSans-Medium'}}>
+                            Go back home
+                            </Text>
+                            </TouchableHighlight>
+            </Block>
+       </Block>
+                           }
+        </Modal>);
+  }
   renderCredit = () => {
 
     return (<Block row>
@@ -318,7 +523,7 @@ componentDidMount(){
             style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
             color={theme.COLORS.WHITE}
         >
-            Proceed To Payment
+            Submit Bank Deposit
         </Text>
     </GaButton>
   </Block>)
@@ -544,6 +749,7 @@ componentDidMount(){
           
           {this.state.Order != null ? this.renderPrograms() : (<Block />)}
           {this.renderModal()}
+          {this.renderPaymentModal()}
           <Block row style={{zIndex: 3, position: 'absolute', top: '70%', right: '5%'}}>
         {(this.state.isNew && this.state.Credit == null && this.state.Order == null) ?
         <Block />
@@ -620,6 +826,19 @@ const styles = StyleSheet.create({
     borderColor: '#E3E2E3', 
     backgroundColor: '#FFFFFF', 
     alignItems: 'center'
+  },
+  datepicker: {
+    borderWidth: 1,
+    borderColor: '#1917181F',
+    borderRadius: 0,
+    height: 45,
+    marginBottom: 10
+  },
+  cardinputs: {
+    borderWidth: 1,
+    borderColor: '#1917181F',
+    borderRadius: 0,
+    backgroundColor: '#ffffff'
   },
   nobutton: {
     height: 40,

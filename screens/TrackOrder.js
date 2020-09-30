@@ -9,8 +9,9 @@ import PhoneInput from 'react-native-phone-input'
 import StepIndicator from 'react-native-step-indicator'
 import TextInputMask from 'react-native-text-input-mask';
 import FloatingActionButton from "react-native-floating-action-button";
-import Programming from "../screens/Programming"
-import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import ModalSelector from 'react-native-modal-selector';
 import HttpService from "../services/HttpService";
 
 const { width, height } = Dimensions.get("screen");
@@ -60,7 +61,7 @@ const IndicatorStyles = {
         product : null,
         productIndex: null,
         depotIndex: null,
-        quantity: "33000",
+        quantity: "0",
         unitPrice: null,
         TotalAmount: "0",
         PhoneNumber: '',
@@ -75,7 +76,14 @@ const IndicatorStyles = {
       Depots: [],
       token: null,
       BankName: null,
-      Reference: null
+      Reference: null,
+      CreditAmount: "0",
+      CreditDate: new Date(),
+      QuantityLoad: [],
+      Capacity: [{key: 33000, label: '33,000'}, {key: 40000, label: '40,000'}, {key: 45000, label: '45,000'}, {key: 60000, label: '60,000'},{key: 90000, label: '90,000'}],
+      SelectedCapacity: {"key": 33000, "label": "33,000"},
+      NumCapacity: '1',
+      ShowDatePicker:  false
     }
     pinInput = React.createRef();
 
@@ -101,14 +109,42 @@ const IndicatorStyles = {
        }
       })
   }
-    setModalCreateVisible(visible) {
-      if(visible){
-        this.setState({quantity: "33000"})
-      }else{
-        
-      }
-        this.setState({modalCreateVisible: visible});
-      }
+  showDatePicker = () => {
+    this.setState({ShowDatePicker: true});
+  };
+
+  hideDatePicker = () => {
+    this.setState({ShowDatePicker: false});
+  };
+
+  handleConfirm = (date) => {
+    console.warn("A date has been picked: ", date);
+    this.setState({ShowDatePicker: false, CreditDate: date});
+  };
+
+  setQuantity = () => {
+    var _selectedCapacity = this.state.SelectedCapacity;
+    var _selectedNumber = this.state.NumCapacity;
+    var load = this.state.QuantityLoad;
+
+    load.push({Capacity: _selectedCapacity, number: _selectedNumber});
+    console.log(load)
+    this.setState({QuantityLoad: load, quantity: parseInt(this.state.quantity) + (parseInt(_selectedCapacity.key) * parseInt(_selectedNumber))});
+  }
+
+  removeQuantity = (index) => {
+    var load = this.state.QuantityLoad;
+    var item = load[index];
+    console.log(item);
+    var totalAmount = parseInt(item.Capacity.key) * parseInt(item.number);
+    load.splice(index, 1);
+    this.setState({QuantityLoad: load, quantity: parseInt(this.state.quantity) - totalAmount});
+  }
+
+  setModalCreateVisible(visible) {
+    
+      this.setState({modalCreateVisible: visible});
+    }
 
       setModalPaymentVisible(visible) {
         this.setState({modalPaymentVisible: visible});
@@ -245,13 +281,14 @@ const IndicatorStyles = {
         if(this.state.BankName != null && this.state.Reference != null) {
          this.setState({spinner: true})
          //validate payment 
-
+         if(parseInt(this.state.TotalAmount) <= parseInt(this.state.CreditAmount)){
          var model = {
            orderId: this.state.OrderId,
-           totalAmount: parseInt(this.state.TotalAmount),
+           totalAmount: parseInt(this.state.CreditAmount),
            type: 3,
            name: this.state.BankName,
-           reference: this.state.Reference
+           reference: this.state.Reference,
+           creditDate: this.state.CreditDate
          }
          console.log(model)
          HttpService.PostAsync('api/Credit', model, this.state.token).then( resp => {
@@ -272,10 +309,17 @@ const IndicatorStyles = {
 
        }
        })
-     }
+      }else{
+        this.setState({spinner: false})
+        alert("Payment amount not must be less than "+this.state.Order.totalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'))
+      }
+      }
 }
-
-
+onChange = (event, selectedDate) => {
+  const currentDate = selectedDate || this.state.date;
+  //setShow(Platform.OS === 'ios');
+  this.setState({CreditDate: currentDate});
+};
       edit() {
         let currentPosition = 0
         this.setState({currentPosition: currentPosition})
@@ -295,7 +339,8 @@ const IndicatorStyles = {
           var model = {
             orderId: this.state.OrderId,
             totalAmount: parseInt(this.state.TotalAmount),
-            type: 2
+            type: 2,
+            creditDate: new Date()
           }
           HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
             this.setModalPaymentVisible(false);
@@ -318,11 +363,13 @@ const IndicatorStyles = {
     setProduct(item, index){
         console.log(item)
         this.setState({product: item, productIndex: index, ifInputupdated: true});
+        this.Next();
     }
 
     setDepot(item, index){
         console.log(item);
         this.setState({depot: item, depotIndex: index, ifInputupdated: true});
+        this.Next();
     }
 
     filterOrder(item){
@@ -341,7 +388,67 @@ const IndicatorStyles = {
         console.log(filters);
         this.setState({Orders: filteredOrder, Filters: filters});
     }
+    renderQuantityPage = () => {
 
+      return (
+        <Block width={width * 0.9} style={{ marginBottom: 5 }}>
+      <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
+    
+          <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
+          <Block width={width * 0.4} row space='between' style={{marginTop: 5, paddingVertical: 15, paddingHorizontal: 5}}>
+          <ModalSelector
+              data={this.state.Capacity}
+              initValue={this.state.Capacity[0].key}
+              selectStyle={styles.picker2}
+              selectTextStyle={styles.selectTextStyle}
+              initValueTextStyle={styles.initvalueTextStyle}
+              onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
+            <Icon
+                  name={'chevron-down'}
+                  family="octicon"
+                  size={14}
+                  color={nowTheme.COLORS.ICON}
+                />
+          </Block>
+          <Block width={width * 0.3} row space='between' style={{marginTop: 0, marginLeft: 5, marginRight: 5}} space="between">
+                  <Input
+                        left
+                        color="black"
+                        style={styles.inputsX}
+                        placeholder="Amount"
+                        value={this.state.NumCapacity}
+                        onChangeText={text => this.setState({NumCapacity: text})}
+                        noicon
+                        keyboardType="numeric"
+                    />
+                              
+            </Block>
+          <Block width={width * 0.1}>
+            <TouchableHighlight onPress={() => this.setQuantity() } style={{width: width * 0.1, paddingVertical: 15}}>
+              <Icon name="pluscircleo" family="AntDesign" />
+            </TouchableHighlight>
+          </Block>
+          </Block>
+          <Block row space='between' style={{marginTop: 5, marginBottom: 15}}>
+                  <Block width={width * 0.6}><Text style={{fontSize: 16, lineHeight: 17, fontFamily: 'HKGrotesk-MediumLegacy'}}>Total Quantity</Text></Block>
+                  <Block width={width * 0.4}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-Bold'}}>{(this.state.quantity).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text></Block>
+              </Block>
+            
+              <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', marginBottom: 10}}>Order Capacity</Text>
+          <FlatList data={this.state.QuantityLoad} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item, index}) => {
+              return (<Block row space='between' style={{marginTop: 5}}>
+                  <Block width={width * 0.3}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-MediumLegacy'}}>{item.Capacity.label}</Text></Block>
+                  <Block width={width * 0.2}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-MediumLegacy'}}>{item.number}</Text></Block>
+                  <Block width={width * 0.3}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-Bold'}}>{(item.Capacity.key * item.number).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text></Block>
+                  <Block width={width * 0.2}><TouchableHighlight onPress={() => this.removeQuantity(index) }>
+              <Icon name="closecircleo" family="AntDesign" />
+            </TouchableHighlight></Block>
+              </Block>)
+            }}/>
+        </Block>
+                    
+      )
+    }
     renderProducts = () => {
       let bgColor = ["#303E4F", "#437FB4", "#909090", "#CB582D", "#E37E2E"]
         return this.state.DailyPrices.map((p, i)=>{
@@ -450,169 +557,8 @@ const IndicatorStyles = {
                                   
                                 </Block>
                   : (currentPosition == 2)   ?             
-                  <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
-
-      <Block row space='between' style={{marginTop: 5}}>
-      <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(33000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +33,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(40000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +40,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(45000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +45,000
-                  </Text>
-                </Button>
-        </Block>
-        <Block row space='between' style={{marginTop: 5}}>
-        <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(60000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +60,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(90000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +90,000
-                  </Text>
-                </Button>
-        </Block>
-      <Block row space='between' style={{marginTop: 5}}>
-      
-                <Input
-
-                    placeholder="Quantity"
-                    color="black"
-                    style={styles.Qtyinputs}
-                    value={quantity}
-                    onChangeText={(text) => {
-                      this.setState({quantity: text, ifInputupdated: true})
-                    }}
-                    keyboardType="numeric"
-                    noicon
-                    editable = {false}
-                  />
-
-<GaButton
-                      shadowless
-                      style={[styles.increbutton, {opacity: 0.35}]}
-                      color='#23C9F165'
-                      onPress={() => this.setDecrease()}
-                  >
-                      <Text
-                          style={{ fontFamily: 'montserrat-bold', fontSize: 14 }}
-                          color={theme.COLORS.BLACK}
-                      >
-                          -
-                      </Text>
-                  </GaButton>
-                </Block>
-                <Block row space='between' style={{marginTop: 5}}>
-      <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(33000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -33,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(40000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -40,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(45000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -45,000
-                  </Text>
-                </Button>
-        </Block>
-        <Block row space='between' style={{marginTop: 5}}>
-        <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(60000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -60,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(90000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -90,000
-                  </Text>
-                </Button>
-        </Block>
-                </Block>
-                    : (currentPosition == 3) ?
+                  this.renderQuantityPage()
+                  : (currentPosition == 3) ?
                     <Block width={width * 0.9} style={{ marginBottom: 5 }}>
       <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Do you have a discount Code? Enter here...</Text>
       <Input
@@ -647,7 +593,7 @@ const IndicatorStyles = {
 
 
                         <Block style={{width: (width * 0.9), marginTop: 25, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
-                        <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.product} (ex {depot.Name})</Text>
+                        <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.product} (ex {depot.name})</Text>
                     
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Order Quantity:</Text>
@@ -742,20 +688,7 @@ const IndicatorStyles = {
                                 </Block>) 
                                 : 
                                 <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
-                                { (currentPosition < 2) ?
-                                <GaButton
-                                      shadowless
-                                      style={styles.nextbutton}
-                                      color={nowTheme.COLORS.PRIMARY}
-                                      onPress={() => ifInputupdated && this.Next()}
-                                  >
-                                      <Text
-                                          style={{ fontFamily: 'HKGrotesk-Medium', fontSize: 14 }}
-                                          color={theme.COLORS.WHITE}
-                                      >
-                                          Next
-                                      </Text>
-                                </GaButton> : (currentPosition == 2) ?
+                                { (currentPosition == 2) ?
                                   <GaButton
                                       shadowless
                                       style={styles.nextbutton}
@@ -821,23 +754,49 @@ const IndicatorStyles = {
                 <Input
                         left
                         color="black"
-                        style={styles.inputs}
+                        style={styles.cardinputs}
                         placeholder="Enter bank name"
                         onChangeText={text => this.setState({BankName: text})}
                         noicon
                     />
                               </Block>
-               <Block width={width * 0.9} space='between' style={{marginTop: 5}} style={{ marginBottom: 5, marginLeft: 5, }} space="between">
+                <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
                   <Input
                         left
                         color="black"
-                        style={styles.inputs}
+                        style={styles.cardinputs}
+                        placeholder="Amount"
+                        onChangeText={text => this.setState({CreditAmount: text})}
+                        noicon
+                        keyboardType="numeric"
+                    />
+                              
+                </Block>
+               <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+                  <Input
+                        left
+                        color="black"
+                        style={styles.cardinputs}
                         placeholder="Enter teller number or payment refrence number"
                         onChangeText={text => this.setState({Reference: text})}
                         noicon
                     />
                               
-                                </Block>
+                </Block>
+                <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+                <TouchableHighlight onPress={() => this.showDatePicker()}>
+                  <Block width={width * 0.9} middle style={styles.datepicker}>
+                      <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{this.state.CreditDate.toDateString()}</Text>
+                  </Block>
+                  </TouchableHighlight>
+                  <DateTimePickerModal
+            isVisible={this.state.ShowDatePicker}
+            mode="date"
+            onConfirm={this.handleConfirm}
+            onCancel={this.hideDatePicker}
+          />
+                              
+                </Block>
                   
                   <Block style={{marginBottom:  10, marginTop: 20}}></Block>
                                 <Block width={width * 0.9} style={{marginBottom: 25}} right>
@@ -857,9 +816,7 @@ const IndicatorStyles = {
                                   </GaButton>
                                 
                                 </Block>
-                                <Block middle>
-                                <Image source={Images.paystack} style={{ width: 168, height: 49 }} />
-                              </Block>
+                                
                   </Block>
                   
                 </Block>
@@ -904,6 +861,7 @@ const IndicatorStyles = {
                                }
             </Modal>);
       }
+    
     
     renderChildFilter = () => {
         return this.state.Filters.map((v,i) => {
@@ -999,6 +957,12 @@ const styles = StyleSheet.create({
         borderRadius: 0,
         backgroundColor: '#ffffff'
       },
+      cardinputs: {
+        borderWidth: 1,
+        borderColor: '#1917181F',
+        borderRadius: 0,
+        backgroundColor: '#ffffff'
+      },
       Qtyinputs: {
         borderWidth: 1,
         borderColor: '#1917181F',
@@ -1013,6 +977,37 @@ const styles = StyleSheet.create({
         height: nowTheme.SIZES.BASE * 3,
         shadowRadius: 0,
         shadowOpacity: 0
+      },
+      picker2: {
+        borderWidth: 0,
+        height: 10,
+        width: width * 0.38,
+        padding: 0
+      },
+      inputsX: {
+        borderWidth: 0,
+        borderRadius: 0,
+        backgroundColor: '#ffffff',
+        margin:0
+      },
+      selectTextStyle: {
+        fontFamily: 'HKGrotesk-Bold',
+        fontSize: 14,
+        color: nowTheme.COLORS.PRIMARY,
+        textTransform: 'uppercase', 
+      },
+      initvalueTextStyle: {
+        fontFamily: 'HKGrotesk-Bold',
+        fontSize: 14,
+        color: nowTheme.COLORS.PRIMARY,
+        textTransform: 'uppercase', 
+      },
+      datepicker: {
+        borderWidth: 1,
+        borderColor: '#1917181F',
+        borderRadius: 0,
+        height: 45,
+        marginBottom: 10
       },
       button: {
         width: width - 40,

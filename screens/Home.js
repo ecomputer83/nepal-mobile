@@ -11,8 +11,8 @@ import PhoneInput from 'react-native-phone-input'
 import StepIndicator from 'react-native-step-indicator'
 import TextInputMask from 'react-native-text-input-mask';
 import FloatingActionButton from "react-native-floating-action-button";
-import SmoothPinCodeInput from 'react-native-smooth-pincode-input';
 import HttpService from "../services/HttpService";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 const { width, height } = Dimensions.get("screen");
 const iPhoneX = () =>
@@ -61,7 +61,7 @@ class Home extends React.Component {
         product : null,
         productIndex: null,
         depotIndex: null,
-        quantity: "33000",
+        quantity: "0",
         unitPrice: null,
         TotalAmount: "0",
         PhoneNumber: '',
@@ -79,7 +79,14 @@ class Home extends React.Component {
       _depot: {},
       token: null,
       BankName: null,
-      Reference: null
+      Reference: null,
+      CreditAmount: "0",
+      CreditDate: new Date(),
+      QuantityLoad: [],
+      Capacity: [{key: 33000, label: '33,000'}, {key: 40000, label: '40,000'}, {key: 45000, label: '45,000'}, {key: 60000, label: '60,000'},{key: 90000, label: '90,000'}],
+      SelectedCapacity: {"key": 33000, "label": "33,000"},
+      NumCapacity: '1',
+      ShowDatePicker:  false
     }
     
   }
@@ -119,10 +126,40 @@ class Home extends React.Component {
 
   }
 
+  showDatePicker = () => {
+    this.setState({ShowDatePicker: true});
+  };
+
+  hideDatePicker = () => {
+    this.setState({ShowDatePicker: false});
+  };
+
+  handleConfirm = (date) => {
+    console.warn("A date has been picked: ", date);
+    this.setState({ShowDatePicker: false, CreditDate: date});
+  };
+
+  setQuantity = () => {
+    var _selectedCapacity = this.state.SelectedCapacity;
+    var _selectedNumber = this.state.NumCapacity;
+    var load = this.state.QuantityLoad;
+
+    load.push({Capacity: _selectedCapacity, number: _selectedNumber});
+    console.log(load)
+    this.setState({QuantityLoad: load, quantity: parseInt(this.state.quantity) + (parseInt(_selectedCapacity.key) * parseInt(_selectedNumber))});
+  }
+
+  removeQuantity = (index) => {
+    var load = this.state.QuantityLoad;
+    var item = load[index];
+    console.log(item);
+    var totalAmount = parseInt(item.Capacity.key) * parseInt(item.number);
+    load.splice(index, 1);
+    this.setState({QuantityLoad: load, quantity: parseInt(this.state.quantity) - totalAmount});
+  }
+
   setModalCreateVisible(visible) {
-    if(visible){
-      this.setState({quantity: "33000"})
-    }
+    
       this.setState({modalCreateVisible: visible});
     }
 
@@ -224,13 +261,14 @@ class Home extends React.Component {
              if(this.state.BankName != null && this.state.Reference != null) {
               this.setState({spinner: true})
               //validate payment 
-
+              if(parseInt(this.state.TotalAmount) <= parseInt(this.state.CreditAmount)){
               var model = {
                 orderId: this.state.OrderId,
-                totalAmount: parseInt(this.state.TotalAmount),
+                totalAmount: parseInt(this.state.CreditAmount),
                 type: 3,
                 name: this.state.BankName,
-                reference: this.state.Reference
+                reference: this.state.Reference,
+                creditDate: this.state.CreditDate
               }
               console.log(model)
               HttpService.PostAsync('api/Credit', model, this.state.token).then( resp => {
@@ -251,6 +289,10 @@ class Home extends React.Component {
 
             }
             })
+          }else{
+            this.setState({spinner: false})
+            alert("Payment amount not must be less than "+this.state.Order.totalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'))
+          }
           }
     }
 
@@ -258,6 +300,12 @@ class Home extends React.Component {
       let currentPosition = 0
       this.setState({currentPosition: currentPosition})
     }
+
+    onChange = (event, selectedDate) => {
+      const currentDate = selectedDate || this.state.date;
+      //setShow(Platform.OS === 'ios');
+      this.setState({CreditDate: currentDate});
+    };
 
     saveandnavigate = () => {
         this.setModalPaymentVisible(false);
@@ -273,7 +321,8 @@ class Home extends React.Component {
       var model = {
         orderId: this.state.OrderId,
         totalAmount: parseInt(this.state.TotalAmount),
-        type: 2
+        type: 2,
+        creditDate: new Date()
       }
       HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
         this.setModalPaymentVisible(false);
@@ -293,14 +342,77 @@ class Home extends React.Component {
         this.props.navigation.navigate('Home')
 }
 
+renderQuantityPage = () => {
+
+  return (
+    <Block width={width * 0.9} style={{ marginBottom: 5 }}>
+  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
+
+      <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
+      <Block width={width * 0.4} row space='between' style={{marginTop: 5, paddingVertical: 15, paddingHorizontal: 5}}>
+      <ModalSelector
+          data={this.state.Capacity}
+          initValue={this.state.Capacity[0].key}
+          selectStyle={styles.picker2}
+          selectTextStyle={styles.selectTextStyle}
+          initValueTextStyle={styles.initvalueTextStyle}
+          onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
+        <Icon
+              name={'chevron-down'}
+              family="octicon"
+              size={14}
+              color={nowTheme.COLORS.ICON}
+            />
+      </Block>
+      <Block width={width * 0.3} row space='between' style={{marginTop: 0, marginLeft: 5, marginRight: 5}} space="between">
+              <Input
+                    left
+                    color="black"
+                    style={styles.inputsX}
+                    placeholder="Amount"
+                    value={this.state.NumCapacity}
+                    onChangeText={text => this.setState({NumCapacity: text})}
+                    noicon
+                    keyboardType="numeric"
+                />
+                          
+        </Block>
+      <Block width={width * 0.1}>
+        <TouchableHighlight onPress={() => this.setQuantity() } style={{width: width * 0.1, paddingVertical: 15}}>
+          <Icon name="pluscircleo" family="AntDesign" />
+        </TouchableHighlight>
+      </Block>
+      </Block>
+      <Block row space='between' style={{marginTop: 5, marginBottom: 15}}>
+              <Block width={width * 0.6}><Text style={{fontSize: 16, lineHeight: 17, fontFamily: 'HKGrotesk-MediumLegacy'}}>Total Quantity</Text></Block>
+              <Block width={width * 0.4}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-Bold'}}>{(this.state.quantity).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text></Block>
+          </Block>
+        
+          <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', marginBottom: 10}}>Order Capacity</Text>
+      <FlatList data={this.state.QuantityLoad} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item, index}) => {
+          return (<Block row space='between' style={{marginTop: 5}}>
+              <Block width={width * 0.3}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-MediumLegacy'}}>{item.Capacity.label}</Text></Block>
+              <Block width={width * 0.2}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-MediumLegacy'}}>{item.number}</Text></Block>
+              <Block width={width * 0.3}><Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-Bold'}}>{(item.Capacity.key * item.number).toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text></Block>
+              <Block width={width * 0.2}><TouchableHighlight onPress={() => this.removeQuantity(index) }>
+          <Icon name="closecircleo" family="AntDesign" />
+        </TouchableHighlight></Block>
+          </Block>)
+        }}/>
+    </Block>
+                
+  )
+}
   setProduct(item, index){
       console.log(item)
       this.setState({product: item, productIndex: index, ifInputupdated: true});
+      this.Next()
   }
 
   setDepot(item, index){
       console.log(item);
       this.setState({depot: item, depotIndex: index, ifInputupdated: true});
+      this.Next()
   }
 
   renderProducts = () => {
@@ -440,155 +552,8 @@ class Home extends React.Component {
                               
                             </Block>
               : (currentPosition == 2)   ?             
-              <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
-
-      <Block row space='between' style={{marginTop: 5}}>
-      <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(33000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +33,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(40000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +40,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(45000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +45,000
-                  </Text>
-                </Button>
-        </Block>
-        <Block row space='between' style={{marginTop: 5}}>
-        <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(60000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +60,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setIncrease(90000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    +90,000
-                  </Text>
-                </Button>
-        </Block>
-      <Block row space='between' style={{marginTop: 5}}>
-      
-                <Input
-                    placeholder="Quantity"
-                    color="black"
-                    style={styles.Qtyinputs}
-                    value={quantity}
-                    onChangeText={(text) => {
-                      this.setState({quantity: text, ifInputupdated: true})
-                    }}
-                    keyboardType="numeric"
-                    noicon
-                    editable = {false}
-                  />
-
-                </Block>
-                <Block row space='between' style={{marginTop: 5}}>
-      <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(33000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -33,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(40000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -40,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(45000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -45,000
-                  </Text>
-                </Button>
-        </Block>
-        <Block row space='between' style={{marginTop: 5}}>
-        <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(60000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -60,000
-                  </Text>
-                </Button>
-                <Button
-                  shadowless style={styles.nobutton}
-                  color={nowTheme.COLORS.DARK}
-                  onPress={() => this.setDecrease(90000)}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    -90,000
-                  </Text>
-                </Button>
-        </Block>
-                </Block>
-                : (currentPosition == 3) ?
+              this.renderQuantityPage()
+              : (currentPosition == 3) ?
                 <Block width={width * 0.9} style={{ marginBottom: 5 }}>
   <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Do you have a discount Code? Enter here...</Text>
   <Input
@@ -603,7 +568,7 @@ class Home extends React.Component {
                     <Block center style={{width: (width * 0.9), marginTop: 25, padding: 10, backgroundColor: '#121112'}}>
                 <Text style={{fontSize: 14, lineHeight: 16, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>₦{TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres</Text>
-                <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{product.Product} (ex {depot.Name})</Text>
+                <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5}}>{product.product} (ex {depot.name})</Text>
                 <TouchableHighlight onPress={() => this.edit()}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15}}>Edit</Text></TouchableHighlight>
 
                     </Block>
@@ -623,7 +588,7 @@ class Home extends React.Component {
 
 
                     <Block style={{width: (width * 0.9), marginTop: 25, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
-                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.Product} (ex {depot.Name})</Text>
+                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.product} (ex {depot.name})</Text>
                 
                 <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Order Quantity:</Text>
@@ -631,19 +596,15 @@ class Home extends React.Component {
                 </Block>
                 <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>List Unit Price:</Text>
-                  <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.Price}</Text>
+                  <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.price}</Text>
                 </Block>
                 <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Discount Offered:</Text>
                   <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0.5</Text>
                 </Block>
                 <Block row space='between' style={{marginTop: 5}} space='between'>
-                <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>IPMAN Discount:</Text>
-                  <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0.5</Text>
-                </Block>
-                <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Net Unit Price:</Text>
-                  <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.Price - 1}</Text>
+                  <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.price}</Text>
                 </Block>
                 <Text style={{fontSize: 14, lineHeight: 15, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>Total Order Amount</Text>
                 <Text style={{fontSize: 14, lineHeight: 16, fontFamily: 'HKGrotesk-BoldLegacy', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>₦{TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}</Text>
@@ -722,20 +683,7 @@ class Home extends React.Component {
                             </Block>) 
                             : 
                             <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
-                            { (currentPosition < 2) ?
-                            <GaButton
-                                  shadowless
-                                  style={styles.nextbutton}
-                                  color={nowTheme.COLORS.PRIMARY}
-                                  onPress={() => ifInputupdated && this.Next()}
-                              >
-                                  <Text
-                                      style={{ fontFamily: 'HKGrotesk-Medium', fontSize: 14 }}
-                                      color={theme.COLORS.WHITE}
-                                  >
-                                      Next
-                                  </Text>
-                            </GaButton> : (currentPosition == 2) ?
+                            { (currentPosition == 2) ?
                               <GaButton
                                   shadowless
                                   style={styles.nextbutton}
@@ -789,23 +737,49 @@ class Home extends React.Component {
             <Input
                     left
                     color="black"
-                    style={styles.inputs}
+                    style={styles.cardinputs}
                     placeholder="Enter bank name"
                     onChangeText={text => this.setState({BankName: text})}
                     noicon
                 />
                           </Block>
-           <Block width={width * 0.9} row space='between' style={{marginTop: 5}} style={{ marginBottom: 5, marginLeft: 5, }} space="between">
+            <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
               <Input
                     left
                     color="black"
-                    style={styles.inputs}
+                    style={styles.cardinputs}
+                    placeholder="Amount"
+                    onChangeText={text => this.setState({CreditAmount: text})}
+                    noicon
+                    keyboardType="numeric"
+                />
+                          
+            </Block>
+           <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+              <Input
+                    left
+                    color="black"
+                    style={styles.cardinputs}
                     placeholder="Enter teller number or payment refrence number"
                     onChangeText={text => this.setState({Reference: text})}
                     noicon
                 />
                           
-                            </Block>
+            </Block>
+            <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+            <TouchableHighlight onPress={() => this.showDatePicker()}>
+              <Block width={width * 0.9} middle style={styles.datepicker}>
+                  <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{this.state.CreditDate.toDateString()}</Text>
+              </Block>
+              </TouchableHighlight>
+              <DateTimePickerModal
+        isVisible={this.state.ShowDatePicker}
+        mode="date"
+        onConfirm={this.handleConfirm}
+        onCancel={this.hideDatePicker}
+      />
+                          
+            </Block>
               
               <Block style={{marginBottom:  10, marginTop: 20}}></Block>
                             <Block width={width * 0.9} style={{marginBottom: 25}} right>
@@ -1012,6 +986,12 @@ const styles = StyleSheet.create({
     width: 200,
     padding: 0
   },
+  picker2: {
+    borderWidth: 0,
+    height: 10,
+    width: width * 0.38,
+    padding: 0
+  },
   yesbutton: {
     width: (width /3) - (theme.SIZES.BASE * 2 + 2.5),
     height: theme.SIZES.BASE * 2,
@@ -1066,7 +1046,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     margin: 2
   },
-
+  cardinputs: {
+    borderWidth: 1,
+    borderColor: '#1917181F',
+    borderRadius: 0,
+    backgroundColor: '#ffffff'
+  },
   proceedbutton: {
     width: (width * 0.3),
     height: 40,
@@ -1108,6 +1093,19 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     borderRadius: 0,
     backgroundColor: '#ffffff'
+  },
+  inputsX: {
+    borderWidth: 0,
+    borderRadius: 0,
+    backgroundColor: '#ffffff',
+    margin:0
+  },
+  datepicker: {
+    borderWidth: 1,
+    borderColor: '#1917181F',
+    borderRadius: 0,
+    height: 45,
+    marginBottom: 10
   },
   nobutton: {
    width: (width /3) - (theme.SIZES.BASE * 2 + 2.5),

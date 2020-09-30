@@ -127,13 +127,7 @@ export default class SignUp extends React.Component {
                   textContent={'Loading...'}
                   textStyle={styles.spinnerTextStyle}
                 />
-          {(viewstate == 3)  ?
-            this.renderRegForm()
-          : (viewstate == 2) ?
-            this.renderIPMANCode()
-          :
-            this.renderIPMAN()
-          }
+            {this.renderRegForm()}
         </Block>
         </Block>
       </DismissKeyboard>
@@ -220,7 +214,7 @@ export default class SignUp extends React.Component {
     const { navigation } = this.props;
     const { phoneNumber, viewstate, SignUpErrors } = this.state;
     return (
-          <ScrollView>
+          <ScrollView style={{height: height-100}}>
           <Block space="between" style={styles.padded}>
             <Block>
             <Block>
@@ -228,9 +222,24 @@ export default class SignUp extends React.Component {
             We are glad to take you on board!
             </Text>
             </Block>
+            
               <Block style={{
                   marginTop: 5, marginLeft:20
                 }}>
+                  <Block style={{marginVertical: 1}}>
+                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                Enter your IPMAN Membership Code
+                  </Text>
+                <Input
+                    left
+                    color="black"
+                    style={styles.input}
+                    placeholder="Enter  business name here"
+                    onChangeText={text => this.SetInput({ipmanCode: text})}
+                    noicon
+                    errorMessage={SignUpErrors.businessName}
+                />
+                </Block>
                 <Block style={{marginVertical: 1}}>
                 <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
                   Business Name
@@ -381,8 +390,7 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === 'android' ? 0 : 0
   },
   padded: {
-    marginTop: 9,
-    height: height-39
+    marginTop: 9
   },
   button: {
     width: width - 40,
