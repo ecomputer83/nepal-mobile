@@ -13,6 +13,7 @@ import TextInputMask from 'react-native-text-input-mask';
 import FloatingActionButton from "react-native-floating-action-button";
 import HttpService from "../services/HttpService";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import Theme from "../constants/Theme";
 
 const { width, height } = Dimensions.get("screen");
 const iPhoneX = () =>
@@ -48,7 +49,9 @@ class Home extends React.Component {
     super(props);
     this.state = {
       DailyPrices: [],
+      Products: [],
       Articles: [],
+      Banks: [],
       OrderId: 0,
       modalCreateVisible: false,
         modalPaymentVisible: false,
@@ -86,7 +89,10 @@ class Home extends React.Component {
       Capacity: [{key: 33000, label: '33,000'}, {key: 40000, label: '40,000'}, {key: 45000, label: '45,000'}, {key: 60000, label: '60,000'},{key: 90000, label: '90,000'}],
       SelectedCapacity: {"key": 33000, "label": "33,000"},
       NumCapacity: '1',
-      ShowDatePicker:  false
+      orderNo: null,
+      ShowDatePicker:  false,
+      Group: "OGHARA",
+      SelectedGroup: ""
     }
     
   }
@@ -95,6 +101,9 @@ class Home extends React.Component {
   readData = async () => {
     
     return await AsyncStorage.getItem('user');
+  }
+  setBank =(itemValue) => {
+    this.setState({BankName: itemValue.key});
   }
   pickerProduct(index){
       this.state.DailyPrices.map( (v,i)=>{
@@ -116,14 +125,33 @@ class Home extends React.Component {
     })
 }
   pickerDepotX(index){
-    this.state.Depots.map( (v,i)=>{
-     if( index === i ){
-       this.setState({
-       depot: prod.Depots[index]
-      })
-     }
-    })
+    var depot = this.state.Depots.find(c => c.id == index);
+    if(depot){
+       var Group = depot.group;
+       
 
+       if(this.state.Group != Group){
+        this.setState({spinner: true})
+        console.log(this.state.Group)
+       HttpService.GetAsync('api/Misc/SalePrice/'+ Group).then(response => {
+         console.log(response)
+         response.json().then(v => {
+        this.setState({
+          depot: depot, DailyPrices: v, Group: Group, spinner: false
+         })
+       })
+      });
+        }else{
+          console.log(1 + this.state.Group)
+        this.setState({
+          depot: depot
+         })
+      }
+     }else{
+       console.log(depot);
+       console.log(this.state.Depots)
+     }
+    
   }
 
   showDatePicker = () => {
@@ -143,10 +171,18 @@ class Home extends React.Component {
     var _selectedCapacity = this.state.SelectedCapacity;
     var _selectedNumber = this.state.NumCapacity;
     var load = this.state.QuantityLoad;
-
+    var existIndex = load.findIndex(l=>l.Capacity = _selectedCapacity);
+    var _quantity = parseInt(this.state.quantity);
+    if(existIndex > -1){
+      _quantity = _quantity - (parseInt(load[existIndex].Capacity.key) * parseInt(load[existIndex].number))
+      load[existIndex] = {Capacity: _selectedCapacity, number: _selectedNumber};
+      _quantity = _quantity + (parseInt(_selectedCapacity.key) * parseInt(_selectedNumber))
+    }else{
     load.push({Capacity: _selectedCapacity, number: _selectedNumber});
+    _quantity = _quantity + (parseInt(_selectedCapacity.key) * parseInt(_selectedNumber))
+    }
     console.log(load)
-    this.setState({QuantityLoad: load, quantity: parseInt(this.state.quantity) + (parseInt(_selectedCapacity.key) * parseInt(_selectedNumber))});
+    this.setState({QuantityLoad: load, quantity: _quantity, ifInputupdated: true});
   }
 
   removeQuantity = (index) => {
@@ -159,7 +195,9 @@ class Home extends React.Component {
   }
 
   setModalCreateVisible(visible) {
-    
+    if(!visible)
+      this.setState({TotalAmount: "0"})
+
       this.setState({modalCreateVisible: visible});
     }
 
@@ -191,8 +229,13 @@ class Home extends React.Component {
       let ifup = false;
       var currentPosition = this.state.currentPosition
         if(last){
-            var TotalAmount = this.state.quantity * this.state.product.price;
+          if(this.state.quantity == "0"){
+            alert("Quantity must be set!");
+            return;
+          }else{
+            var TotalAmount = parseInt(this.state.quantity) * this.state.product.price;
             this.setState({TotalAmount: TotalAmount})
+          }
         }
         console.log(this.state.ipman)
       if(last && this.state.ipman == 1){
@@ -202,22 +245,36 @@ class Home extends React.Component {
           Quantity: parseInt(this.state.quantity),
           TotalAmount: parseInt(this.state.quantity * this.state.product.price)
         } 
-        if(this.state.DepotId == null)
+        if(this.state.OrderId == 0)
         {
           console.log(model)
-           HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(value => 
+           HttpService.PostAsync('api/Order', model, this.state.token).then(response => {
+             console.log(response)
+             response.json().then(value => 
            {
              console.log(value);
-             this.setState({OrderId: value})
-           }));
+             HttpService.GetAsync('api/Order/' + value, this.state.token).then(response => {
+               console.log(response);
+               response.json().then(order => {
+              console.log(order);
+              this.setState({OrderId: value, orderNo: order.orderNo})
+              
+             })
+            })
+           })
+          });
        }else{
-           HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => response.json().then(value => 
+           HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => 
+            {
+              console.log(response)
+              response.json().then(value => 
            {
              console.log(value);
              //this.setState({OrderId: value})
-           }));
+           })
+            });
        }
-        currentPosition = this.state.currentPosition + 2
+       currentPosition = this.state.currentPosition + 2
       }else {
         if(this.state.currentPosition == 3){
            var model = {
@@ -226,16 +283,18 @@ class Home extends React.Component {
              Quantity: parseInt(this.state.quantity),
              TotalAmount: parseInt(this.state.TotalAmount)
            } 
-           if(this.state.DepotId == null)
+           if(this.state.OrderId == 0)
            {
              console.log(model)
               HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(value => 
               {
                 console.log(value);
-                this.setState({OrderId: value})
+                HttpService.GetAsync('api/Order/' + value).then(response => response.json().then(order => {
+                  this.setState({OrderId: value, orderNo: order.orderNo})
+                 }))
               }));
           }else{
-              HttpService.PutAsync('api/Order/' + this.state.DepotId, model, this.state.token).then(response => response.json().then(value => 
+              HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => response.json().then(value => 
               {
                 console.log(value);
                 //this.setState({OrderId: value})
@@ -287,6 +346,8 @@ class Home extends React.Component {
                 spinner: false, CompletePayment: true
               });
 
+            }else{
+              alert("There is an error in the submission")
             }
             })
           }else{
@@ -349,22 +410,18 @@ renderQuantityPage = () => {
   <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
 
       <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
-      <Block width={width * 0.4} row space='between' style={{marginTop: 5, paddingVertical: 15, paddingHorizontal: 5}}>
-      <ModalSelector
-          data={this.state.Capacity}
-          initValue={this.state.Capacity[0].key}
-          selectStyle={styles.picker2}
-          selectTextStyle={styles.selectTextStyle}
-          initValueTextStyle={styles.initvalueTextStyle}
-          onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
-        <Icon
-              name={'chevron-down'}
-              family="octicon"
-              size={14}
-              color={nowTheme.COLORS.ICON}
-            />
+      <Block width={width * 0.5} row space='between' style={{paddingVertical: 10, paddingHorizontal: 5}}>
+       <Block style={styles.dropdownpicker}>
+                              <ModalSelector
+                                  data={this.state.Capacity }
+                                  initValue='Select Capacity'
+                                  selectStyle={styles.selectStyle}
+                                  selectTextStyle={styles.selectTextStyle}
+                                  initValueTextStyle={styles.initvalueTextStyle}
+                                  onChange={(itemValue) => this.setBank(itemValue)} />
+                              </Block>  
       </Block>
-      <Block width={width * 0.3} row space='between' style={{marginTop: 0, marginLeft: 5, marginRight: 5}} space="between">
+      <Block width={width * 0.3} row space='between' style={{marginTop: 2, marginLeft: 5, marginRight: 5}} space="between">
               <Input
                     left
                     color="black"
@@ -411,13 +468,22 @@ renderQuantityPage = () => {
 
   setDepot(item, index){
       console.log(item);
-      this.setState({depot: item, depotIndex: index, ifInputupdated: true});
-      this.Next()
+      var Group = item.group;
+      if(Group != this.SelectedGroup){
+        this.setState({spinner: true})
+      HttpService.GetAsync('api/Misc/SalePrice/'+ Group).then(response => response.json().then(v => {
+        this.setState({depot: item, depotIndex: index, ifInputupdated: true, Products: v, SelectedGroup: Group, spinner: false});
+        this.Next()
+       }));
+      }else{
+        this.setState({depot: item, depotIndex: index, ifInputupdated: true});
+        this.Next()
+      }
   }
 
   renderProducts = () => {
     let bgColor = ["#303E4F", "#437FB4", "#909090", "#CB582D", "#E37E2E"]
-      return this.state.DailyPrices.map((p, i)=>{
+      return this.state.Products.map((p, i)=>{
           const productStyle = [styles.product, {backgroundColor: bgColor[i]}, (this.state.productIndex == i) && styles.selected]
           return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>
               <Block width={width * 0.9} row space='between' style={{marginTop: 5}} space='between' style={productStyle}>
@@ -587,9 +653,12 @@ renderQuantityPage = () => {
                   <Text style={{fontSize: 14, lineHeight: 24, fontFamily: 'ProductSans-Bold', textAlign: 'center'}}>Congratulations! Your Order has been submitted Successfully.</Text>
 
 
-                    <Block style={{width: (width * 0.9), marginTop: 25, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
+                    <Block style={{width: (width * 0.9), marginTop: 20, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.product} (ex {depot.name})</Text>
-                
+                    <Block row space='between'>
+                    <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Reference No:</Text>
+                      <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{this.state.orderNo}</Text>
+                    </Block>
                 <Block row space='between' style={{marginTop: 5}} space='between'>
                 <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Order Quantity:</Text>
                   <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{quantity.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')} Litres</Text>
@@ -612,6 +681,9 @@ renderQuantityPage = () => {
                 <TouchableHighlight onPress={() => this.edit()}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15, textAlign: 'center'}}>Edit</Text></TouchableHighlight>
 
                     </Block>
+              <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14,  marginTop: 10}}>NOTE: Please make payment to any account in the link below, after payment, go to Orders tab and select the order with reference no {this.state.orderNo} to submit the receipt of payment</Text>
+              <TouchableHighlight onPress={() => {this.setModalCreateVisible(false); this.props.navigation.navigate('BankAccount', {Banks: this.state.Banks});}}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15, textAlign: 'center'}}>Bank accounts</Text></TouchableHighlight>
+
                 </Block>
   }
               <Block style={{marginBottom:  10, marginTop: 20}}></Block>
@@ -638,7 +710,7 @@ renderQuantityPage = () => {
                             </GaButton>
                           </Block>)
                            : (currentPosition > 3) ? (
-                            <Block width={width * 0.9} center style={{position: 'absolute', bottom: 50}}>
+                            <Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
                               {(this.state.ipman == 0) ? (
                               <GaButton
                                   shadowless
@@ -734,15 +806,16 @@ renderQuantityPage = () => {
             You are expected to make payment at any bank, please provide the payment information
             </Text>
             <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
-            <Input
-                    left
-                    color="black"
-                    style={styles.cardinputs}
-                    placeholder="Enter bank name"
-                    onChangeText={text => this.setState({BankName: text})}
-                    noicon
-                />
-                          </Block>
+            <Block style={styles.dropdownpicker}>
+                              <ModalSelector
+                                  data={this.state.Banks }
+                                  initValue='Select Account'
+                                  selectStyle={styles.selectStyle}
+                                  selectTextStyle={styles.selectTextStyle}
+                                  initValueTextStyle={styles.initvalueTextStyle}
+                                  onChange={(itemValue) => this.setBank(itemValue)} />
+                              </Block>  
+            </Block>
             <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
               <Input
                     left
@@ -895,7 +968,7 @@ renderQuantityPage = () => {
         var depots = json.depots.map((d, i) => {
           return { key: d.id, label: d.name}
         });
-        var depot = (json.depots.length > 0) ? json.depots[0]: {};
+        var depot = (json.depots.length > 0) ? json.depots.find(c=>c.group == this.state.Group): {};
         this.setState({DailyPrices: json.products, depotX: depots, Depots: json.depots, depot: depot})
         AsyncStorage.setItem('misc', JSON.stringify({DailyPrices: json.products, Depots: json.depots}))
         if(this.state.DailyPrices.length > 0){
@@ -903,6 +976,14 @@ renderQuantityPage = () => {
         }
         AsyncStorage.getItem('userToken').then( value => {
           this.setState({ token: value})
+          HttpService.GetAsync('api/misc/banks', value).then(response => {
+            response.json().then(art => {
+              var banks = art.map((d, i) => {
+                return { key: d.no, label: d.name + ' - ' + d.bankAccountNo}
+              });
+              this.setState({ Banks: banks});
+            })
+          })
           HttpService.GetAsync('api/article', value).then(response => {
             response.json().then(art => {
               this.setState({ Articles: art});
@@ -986,6 +1067,14 @@ const styles = StyleSheet.create({
     width: 200,
     padding: 0
   },
+  dropdownpicker: {
+    borderWidth: 1,
+    borderColor: '#1917181F',
+    borderRadius: 0,
+    height: 45,
+    width: '100%',
+    marginBottom: 10
+  },
   picker2: {
     borderWidth: 0,
     height: 10,
@@ -999,6 +1088,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0,
     marginRight: 10,
     marginLeft: 20
+  },
+
+  selectStyle:{
+    borderWidth: 0
   },
   selectTextStyle: {
     fontFamily: 'HKGrotesk-Bold',
@@ -1095,7 +1188,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff'
   },
   inputsX: {
-    borderWidth: 0,
+    borderWidth: 1,
+    borderColor: '#1917181F',
     borderRadius: 0,
     backgroundColor: '#ffffff',
     margin:0

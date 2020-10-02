@@ -99,7 +99,12 @@ export default class SignUp extends React.Component {
       console.log(error)
     }
   }
-
+  Next = () => {
+    this.setState({viewstate: 2})
+  }
+  Back = () => {
+    this.setState({viewstate: 1})
+  }
   handleLeftPress = () => {
     const { navigation } = this.props;
     return navigation.goBack(null);
@@ -127,51 +132,13 @@ export default class SignUp extends React.Component {
                   textContent={'Loading...'}
                   textStyle={styles.spinnerTextStyle}
                 />
-            {this.renderRegForm()}
+            {(this.state.viewstate > 1) ?
+            this.renderIPMANCode()
+            : this.renderRegForm()
+          }
         </Block>
         </Block>
       </DismissKeyboard>
-    );
-  }
-  renderIPMAN = () => {
-    return (
-      <Block flex style={{width: width, marginLeft: 10, marginTop: 100}}>
-        <Block space="between" > 
-          <Block>
-            <Text size={24} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: nowTheme.COLORS.BLACK, textAlign: 'center'}}>
-              Do you have IPMAN membership?
-            </Text>
-            <Block row style={{ marginTop: 20}}>
-                <Button
-                  shadowless
-                  style={styles.yesbutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setState({viewstate: 2, isIPMAN: true})}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    Yes
-                  </Text>
-                </Button>
-                <Button
-                  shadowless
-                  style={styles.nobutton}
-                  color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setState({viewstate: 3, isIPMAN: false})}
-                >
-                  <Text
-                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
-                  >
-                    No
-                  </Text>
-                </Button>
-                </Block>
-          </Block>
-          </Block>
-      </Block>
     );
   }
 
@@ -179,34 +146,92 @@ export default class SignUp extends React.Component {
     return (
       <Block flex style={{width: width, marginTop: 100}}>
         <Block space="between" > 
-          <Block>
-            <Text size={22} style={{ fontFamily: 'HKGrotesk-Light', lineHeight: 32,fontWeight: '300', color: nowTheme.COLORS.BLACK, textAlign: 'center'}}>
-            Enter your IPMAN Membership Code
+        <Block>
+            <Text size={20} style={{marginLeft: 21, marginBottom:5, fontFamily: 'HKGrotesk-Bold'}}>
+            We are glad to take you on board!
             </Text>
-      <Input
+            </Block>
+        <Block style={{marginVertical: 1}}>
+                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Email Address
+                  </Text>
+                <Input
                     left
                     color="black"
-                    placeholder="Enter code here"
-                    style={styles.codeinput}
+                    style={styles.input}
+                    placeholder="Enter email here"
+                    onChangeText={text => this.SetInput({email: text})}
                     noicon
+                    errorMessage={SignUpErrors.email}
                 />
-           <Block style={{ marginTop: 20}}>
+                </Block>
+                <Block style={{marginVertical: 1}}>
+                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Password
+                  </Text>
+                <Input
+                    placeholder="Enter password here"
+                    noicon
+                    color="black"
+                    style={styles.input}
+                    onChangeText={text => this.SetInput({password: text})}
+                    password
+                    errorMessage={SignUpErrors.password}
+                />
+                </Block>
+                <Block style={{marginVertical: 1}}>
+                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Confirm Password
+                  </Text>
+                <Input
+                    placeholder="Enter confim password here"
+                    noicon
+                    color="black"
+                    style={styles.input}
+                    onChangeText={text => this.SetInput({confirmPassword: text})}
+                    password
+                    errorMessage={SignUpErrors.confirmPassword}
+                />
+                </Block>
+          </Block>
+          <Block
+              row
+                style={{
+                  marginTop: 3.5,
+                  marginBottom: theme.SIZES.BASE * 10
+                }}
+              >
+                <Block width={width * 0.5}>
                 <Button
                   shadowless
-                  style={styles.button}
+                  style={styles.yesbutton}
                   color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.setState({viewstate: 3})}
+                  onPress={() => this.Back()}
                 >
                   <Text
                     style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
-                    color={nowTheme.COLORS.WHITE}
+                    color={theme.COLORS.WHITE}
                   >
-                    Continue
+                    Back
+                  </Text>
+                </Button>
+                </Block>
+                <Block width={width * 0.5}>
+                <Button
+                  shadowless
+                  style={styles.registerbutton}
+                  color={nowTheme.COLORS.PRIMARY}
+                  onPress={() => this.Register()}
+                >
+                  <Text
+                    style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
+                    color={theme.COLORS.WHITE}
+                  >
+                    Register
                   </Text>
                 </Button>
                 </Block>
                 </Block>
-          </Block>
       </Block>
     );
   }
@@ -309,48 +334,7 @@ export default class SignUp extends React.Component {
                       style={styles.custominput}
                       onChangePhoneNumber={value => this.SetInput({phoneNumber: value})}/>
                 </Block>
-                <Block style={{marginVertical: 1}}>
-                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
-                  Email Address
-                  </Text>
-                <Input
-                    left
-                    color="black"
-                    style={styles.input}
-                    placeholder="Enter email here"
-                    onChangeText={text => this.SetInput({email: text})}
-                    noicon
-                    errorMessage={SignUpErrors.email}
-                />
-                </Block>
-                <Block style={{marginVertical: 1}}>
-                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
-                  Password
-                  </Text>
-                <Input
-                    placeholder="Enter password here"
-                    noicon
-                    color="black"
-                    style={styles.input}
-                    onChangeText={text => this.SetInput({password: text})}
-                    password
-                    errorMessage={SignUpErrors.password}
-                />
-                </Block>
-                <Block style={{marginVertical: 1}}>
-                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
-                  Confirm Password
-                  </Text>
-                <Input
-                    placeholder="Enter confim password here"
-                    noicon
-                    color="black"
-                    style={styles.input}
-                    onChangeText={text => this.SetInput({confirmPassword: text})}
-                    password
-                    errorMessage={SignUpErrors.confirmPassword}
-                />
-                </Block>
+                
               </Block>
               
 
@@ -366,13 +350,13 @@ export default class SignUp extends React.Component {
                   shadowless
                   style={styles.button}
                   color={nowTheme.COLORS.PRIMARY}
-                  onPress={() => this.Register()}
+                  onPress={() => this.Next()}
                 >
                   <Text
                     style={{ fontFamily: 'HKGrotesk-BoldLegacy', fontSize: 16 }}
                     color={theme.COLORS.WHITE}
                   >
-                    Register
+                    Next
                   </Text>
                 </Button>
                 </Block>
@@ -439,7 +423,6 @@ const styles = StyleSheet.create({
     height: theme.SIZES.BASE * 3,
     shadowRadius: 0,
     shadowOpacity: 0,
-    marginRight: 140,
     marginLeft: 20
   },
 

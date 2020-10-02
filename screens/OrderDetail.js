@@ -22,6 +22,7 @@ class OrderDetail extends React.Component {
     totalquantity: 0,
     remainQuantity: 0,
     programs: [],
+    Banks: [],
     TruckNo: null,
     Quantity: "33000",
     Destination: null,
@@ -88,7 +89,9 @@ constructor(props) {
   ShowDatePicker:  false
 }
 }
-
+setBank =(itemValue) => {
+  this.setState({BankName: itemValue.key});
+}
 componentDidMount(){
   AsyncStorage.getItem('user').then(data =>{ 
       var user = JSON.parse(data)
@@ -96,6 +99,14 @@ componentDidMount(){
   })
   this.setState({spinner: true})
   AsyncStorage.getItem('userToken').then(token => {
+    HttpService.GetAsync('api/misc/banks', token).then(response => {
+      response.json().then(art => {
+        var banks = art.map((d, i) => {
+          return { key: d.no, label: d.name + ' - ' + d.bankAccountNo}
+        });
+        this.setState({ Banks: banks});
+      })
+    })
     HttpService.GetAsync('api/order/'+this.state.orderId, token)
     .then(response => response.json().then(value => {
       this.setState({Order: value, totalquantity: value.quantity, programs: value.programs,
@@ -181,7 +192,7 @@ componentDidMount(){
     }
   
     AddProgram = () => {
-      if((this.state.totalquantity - this.state.Quantity) >= 33000){
+      if((this.state.totalquantity - this.state.Quantity) == 0 || (this.state.totalquantity - this.state.Quantity) >= 33000){
       let obj = {
           orderId: this.state.Order.orderId,
           truckNo: this.state.TruckNo,
@@ -190,18 +201,25 @@ componentDidMount(){
           status: 1
       };
       console.log(obj);
+      this.setState({spinner: true})
       HttpService.PostAsync('api/program', obj, this.state.token).then(response => {
         console.log(response)
         if(response.status == 200){
         HttpService.GetAsync('api/order/'+this.state.Order.orderId, this.state.token)
-              .then(response => response.json().then(value => {
+              .then(response => {
+                console.log(response)
+                response.json().then(value => {
                 let remainQuantity = this.state.remainQuantity;
                   remainQuantity -= obj.quantity
-                this.setState({Order: value, remainQuantity: remainQuantity, TruckNo: null, Quantity: remainQuantity.toString(), Destination: null, currentState: 0});
+                this.setState({Order: value, remainQuantity: remainQuantity, TruckNo: null, Quantity: remainQuantity.toString(), Destination: null, currentState: 0,spinner: false});
                 this.setModalVisible(false);
           }
 
-          ))
+          )
+        })
+        }else{
+          this.setState({spinner: true})
+          alert("An error ocurred while adding program, contact administrator")
         }
       
     })
@@ -274,6 +292,30 @@ componentDidMount(){
         <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', margin: 10}}>My Orders</Text>
         {this.state.Order != null ?
         (<OrderCard item={this.state.Order} />) : (<Block />) }
+        <Block row>
+      <Block style={{width: width/2,  paddingVertical: 5, paddingHorizontal: 10}}>
+      <Text style={{
+                  color: '#2C4453',
+                  fontSize: 14,
+                  fontFamily: 'HKGrotesk-BoldLegacy',
+                  zIndex: 2
+                }}
+              >
+                Reference No
+                  </Text>
+      </Block>
+      <Block style={{width: width/2, paddingVertical: 5, paddingHorizontal: 10, alignItems: 'flex-end', justifyContent: 'flex-end'}}>
+      <Text style={{
+                  color: '#2C4453',
+                  fontSize: 14,
+                  fontFamily: 'HKGrotesk-BoldLegacy',
+                  zIndex: 2
+                }}
+              >
+                {this.state.Order.orderNo}
+                  </Text>
+      </Block>
+    </Block>
       </Block>
     )
   }
@@ -317,14 +359,15 @@ componentDidMount(){
             You are expected to make payment at any bank, please provide the payment information
             </Text>
             <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
-            <Input
-                    left
-                    color="black"
-                    style={styles.cardinputs}
-                    placeholder="Enter bank name"
-                    onChangeText={text => this.setState({BankName: text})}
-                    noicon
-                />
+            <Block style={styles.dropdownpicker}>
+                              <ModalSelector
+                                  data={this.state.Banks }
+                                  initValue='Select Account'
+                                  selectStyle={styles.selectStyle}
+                                  selectTextStyle={styles.selectTextStyle}
+                                  initValueTextStyle={styles.initvalueTextStyle}
+                                  onChange={(itemValue) => this.setBank(itemValue)} />
+                              </Block>  
                           </Block>
             <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
               <Input
@@ -796,6 +839,13 @@ const styles = StyleSheet.create({
     height: 50
   },
   picker: {
+    borderWidth: 1,
+    borderColor: '#1917181F',
+    borderRadius: 0,
+    height: 45,
+    marginBottom: 10
+  },
+  dropdownpicker: {
     borderWidth: 1,
     borderColor: '#1917181F',
     borderRadius: 0,

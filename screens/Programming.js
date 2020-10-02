@@ -103,34 +103,42 @@ componentDidMount(){
     }
   
     AddProgram = () => {
-      if((this.state.totalquantity - this.state.Quantity) >= 33000){
+      if((this.state.totalquantity - this.state.Quantity) == 0 || (this.state.totalquantity - this.state.Quantity) >= 33000){
       let obj = {
-          orderId: this.state.orderId,
+          orderId: this.state.Order.orderId,
           truckNo: this.state.TruckNo,
           quantity: parseInt(this.state.Quantity),
           destination: this.state.Destination + ', ' + this.state.LGA + ', ' + this.state.State,
           status: 1
       };
       console.log(obj);
+      this.setState({spinner: true})
       HttpService.PostAsync('api/program', obj, this.state.token).then(response => {
         console.log(response)
         if(response.status == 200){
-        HttpService.GetAsync('api/program/', this.state.token)
-              .then(response => response.json().then(value => {
+        HttpService.GetAsync('api/order/'+this.state.Order.orderId, this.state.token)
+              .then(response => {
+                console.log(response)
+                response.json().then(value => {
                 let remainQuantity = this.state.remainQuantity;
                   remainQuantity -= obj.quantity
-                this.setState({programs: value, remainQuantity: remainQuantity, TruckNo: null, Quantity: remainQuantity.toString(), Destination: null, currentState: 0});
+                this.setState({Order: value, remainQuantity: remainQuantity, TruckNo: null, Quantity: remainQuantity.toString(), Destination: null, currentState: 0,spinner: false});
                 this.setModalVisible(false);
           }
 
-          ))
-        
-      }
+          )
+        })
+        }else{
+          this.setState({spinner: true})
+          alert("An error ocurred while adding program, contact administrator")
+        }
+      
     })
-  }else{
-    alert('You won`t be able to program the remaining '+ (this.state.totalquantity - this.state.Quantity) + 'ltrs in next program for this order, Kindly make adjustment now');
-}
-}
+    }else{
+        alert('You won`t be able to program the remaining '+ (this.state.totalquantity - this.state.Quantity) + 'ltrs in next program for this order, Kindly make adjustment now');
+    }
+  }
+
 
     setOrder = (p, remain) => {
       this.setState({totalquantity: p.quantity, orderId: p.orderId,

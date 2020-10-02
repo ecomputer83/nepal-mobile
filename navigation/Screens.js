@@ -10,7 +10,7 @@ import { createIconSetFromFontello } from 'react-native-vector-icons';
 import Home from '../screens/Home';
 import Login from '../screens/Login';
 import Register from '../screens/Register';
-import Onboarding from '../screens/Onboarding';
+import BankAccounts from '../screens/BankAccounts';
 import OrderDetail from '../screens/OrderDetail';
 import CardPayment from '../screens/CardPayment';
 import Programming from '../screens/Programming';
@@ -94,6 +94,12 @@ const TrackOrderStack = createStackNavigator(
       screen: OrderDetail,
       navigationOptions: ({ navigation }) => ({
         header: <Header back bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title='Order Information' navigation={navigation} />
+      })
+    },
+    BankAccount: {
+      screen: BankAccounts,
+      navigationOptions: ({ navigation }) => ({
+        header: <Header back bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title='Account Information' navigation={navigation} />
       })
     },
     CardPayment: {

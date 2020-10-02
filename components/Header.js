@@ -111,12 +111,7 @@ function Header ({ white, title, back, bgColor, User, search, message, transpare
   const renderRight = () => {
     const { routeName } = navigation.state;
 
-    switch (routeName) {
-      case 'TrackOrder':
-        return [
-          <AddButton key="sort" iconName="sort" navigation={navigation} isWhite={white} />,
-          <AddButton key="filter" iconName="filter" navigation={navigation} isWhite={white} />
-        ];
+    switch (routeName) {        
       case 'Home':
         return [
           <AddIconButton key="logout" iconName="logout" iconFamily="AntDesign" />
