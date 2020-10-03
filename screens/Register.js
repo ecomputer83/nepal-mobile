@@ -53,7 +53,7 @@ export default class SignUp extends React.Component {
         password: 'required|string|min:6|max:40|confirmed'
     };
 
-    const data = { isIPMAN: this.state.isIPMAN,
+    const data = { isIPMAN: (this.state.ipmanCode != ''),
        ipmanCode: this.state.ipmanCode,
         businessName: this.state.businessName,
         rcNumber: this.state.rcNumber,
