@@ -132,7 +132,7 @@ const IndicatorStyles = {
     var _selectedCapacity = this.state.SelectedCapacity;
     var _selectedNumber = this.state.NumCapacity;
     var load = this.state.QuantityLoad;
-    var existIndex = load.findIndex(l=>l.Capacity = _selectedCapacity);
+    var existIndex = load.findIndex(l=>l.Capacity == _selectedCapacity);
     var _quantity = parseInt(this.state.quantity);
     if(existIndex > -1){
       _quantity = _quantity - (parseInt(load[existIndex].Capacity.key) * parseInt(load[existIndex].number))
@@ -157,8 +157,14 @@ const IndicatorStyles = {
   }
 
   setModalCreateVisible(visible) {
-    if(!visible)
-      this.setState({TotalAmount: "0"})
+    if(visible)
+      this.setState({TotalAmount: "0", depot: null,
+      product : null,
+      productIndex: null,
+      depotIndex: null,
+      unitPrice: null,currentPosition: 0, QuantityLoad: [],
+      currentState: 0})
+
       
       this.setState({modalCreateVisible: visible});
     }
@@ -196,7 +202,7 @@ const IndicatorStyles = {
               return;
             }else{
               var TotalAmount = this.state.quantity * this.state.product.price;
-              this.setState({TotalAmount: TotalAmount})
+              this.setState({TotalAmount: TotalAmount, CreditAmount: TotalAmount})
             }
           }
           console.log(this.state.ipman)
@@ -230,7 +236,7 @@ const IndicatorStyles = {
                 depotX: prod.Depots.map((d, i) => {
                   return { key: i, label: d.Name}
                 }),
-                depot: prod.Depots[0],
+                //depot: this.state.Depots[0],
                 spinner: false, CompletePayment: false
               });
              }));
@@ -254,7 +260,7 @@ const IndicatorStyles = {
                 depotX: prod.Depots.map((d, i) => {
                   return { key: i, label: d.Name}
                 }),
-                depot: prod.Depots[0],
+                //depot: prod.Depots[0],
                 spinner: false, CompletePayment: false
               });
                //this.setState({DepotId: value})
@@ -291,7 +297,7 @@ const IndicatorStyles = {
                 depotX: prod.Depots.map((d, i) => {
                   return { key: i, label: d.Name}
                 }),
-                depot: prod.Depots[0],
+                //depot: prod.Depots[0],
                 spinner: false, CompletePayment: false
               });
                }));
@@ -315,7 +321,7 @@ const IndicatorStyles = {
                   depotX: prod.Depots.map((d, i) => {
                     return { key: i, label: d.Name}
                   }),
-                  depot: prod.Depots[0],
+                  //depot: prod.Depots[0],
                   spinner: false, CompletePayment: false
                 });
                  //this.setState({OrderId: value})
@@ -373,7 +379,7 @@ const IndicatorStyles = {
        })
       }else{
         this.setState({spinner: false})
-        alert("Payment amount not must be less than "+this.state.Order.totalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'))
+        alert("Payment amount not must be less than "+this.state.TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'))
       }
       }
 }
@@ -647,7 +653,7 @@ onChange = (event, selectedDate) => {
                     </Block>
                     : 
                     <Block middle width={width * 0.9} style={{ marginBottom: 5 }}>
-                      <Block width={47} height={47} style={{ backgroundColor: nowTheme.COLORS.BACKGROUND, marginBottom: 13, marginTop: 33, borderRadius: 50, alignItems: 'center', justifyContent: 'center'}}>
+                      <Block width={47} height={47} style={{ backgroundColor: nowTheme.COLORS.BACKGROUND, marginBottom: 13, marginTop: 23, borderRadius: 50, alignItems: 'center', justifyContent: 'center'}}>
                       <Icon
                           name={'check'}
                           family="octicon"
@@ -659,7 +665,7 @@ onChange = (event, selectedDate) => {
                       <Text style={{fontSize: 14, lineHeight: 24, fontFamily: 'ProductSans-Bold', textAlign: 'center'}}>Congratulations! Your Order has been submitted Successfully.</Text>
 
 
-                        <Block style={{width: (width * 0.9), marginTop: 20, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
+                        <Block style={{width: (width * 0.9), marginTop: 10, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
                         <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.product} (ex {depot.name})</Text>
                         <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Reference No:</Text>
@@ -687,7 +693,7 @@ onChange = (event, selectedDate) => {
                     <TouchableHighlight onPress={() => this.edit()}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15, textAlign: 'center'}}>Edit</Text></TouchableHighlight>
 
                         </Block>
-                        <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14,  marginTop: 10}}>NOTE: Please make payment to any account in the link below, after payment, go to Orders tab and select the order with reference no {this.state.orderNo} to submit the receipt of payment</Text>
+                        <Text size={12} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14,  marginTop: 10}}>NOTE: Please make payment to any account in the link below, after payment, go to Orders tab and select the order with reference no {this.state.OrderNo} to submit the receipt of payment</Text>
               <TouchableHighlight onPress={() => {this.setModalCreateVisible(false); this.props.navigation.navigate('BankAccount', {Banks: this.state.Banks});}}><Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 15, textAlign: 'center'}}>Bank accounts</Text></TouchableHighlight>
 
                     </Block>
@@ -716,7 +722,7 @@ onChange = (event, selectedDate) => {
                                 </GaButton>
                               </Block>)
                                : (currentPosition > 3) ? (
-                                <Block width={width * 0.9} center style={{position: 'absolute', bottom: 50}}>
+                                <Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
                                   {(this.state.ipman == 0) ? (
                                   <GaButton
                                       shadowless
@@ -835,6 +841,9 @@ onChange = (event, selectedDate) => {
                               </Block>  
                               </Block>
                 <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Transaction Amount
+                  </Text>
                   <Input
                         left
                         color="black"
@@ -843,11 +852,15 @@ onChange = (event, selectedDate) => {
                         value={this.state.TotalAmount.toString()}
                         onChangeText={text => this.setState({CreditAmount: text})}
                         noicon
+                        editable={false}
                         keyboardType="numeric"
                     />
                               
                 </Block>
                <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+               <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Receipt No
+                  </Text>
                   <Input
                         left
                         color="black"
@@ -859,6 +872,9 @@ onChange = (event, selectedDate) => {
                               
                 </Block>
                 <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Transaction Date
+                  </Text>
                 <TouchableHighlight onPress={() => this.showDatePicker()}>
                   <Block width={width * 0.9} middle style={styles.datepicker}>
                       <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{this.state.CreditDate.toDateString()}</Text>
@@ -866,6 +882,7 @@ onChange = (event, selectedDate) => {
                   </TouchableHighlight>
                   <DateTimePickerModal
             isVisible={this.state.ShowDatePicker}
+            maximumDate={new Date()}
             mode="date"
             onConfirm={this.handleConfirm}
             onCancel={this.hideDatePicker}

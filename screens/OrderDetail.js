@@ -109,7 +109,7 @@ componentDidMount(){
     })
     HttpService.GetAsync('api/order/'+this.state.orderId, token)
     .then(response => response.json().then(value => {
-      this.setState({Order: value, totalquantity: value.quantity, programs: value.programs,
+      this.setState({Order: value, totalquantity: value.quantity, programs: value.programs, CreditAmount: value.totalAmount,
         remainQuantity: value.quantity, Credit: value.credit, token: token, spinner: false});
     }
 
@@ -289,35 +289,10 @@ componentDidMount(){
   renderFeatures = () => {
     return (
       <Block>
-        <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', margin: 10}}>My Orders</Text>
+        
         {this.state.Order != null ?
         (<OrderCard item={this.state.Order} />) : (<Block />) }
-        {this.state.Order != null ?
-        <Block row>
-      <Block style={{width: width/2,  paddingVertical: 5, paddingHorizontal: 10}}>
-      <Text style={{
-                  color: '#2C4453',
-                  fontSize: 14,
-                  fontFamily: 'HKGrotesk-BoldLegacy',
-                  zIndex: 2
-                }}
-              >
-                Reference No
-                  </Text>
-      </Block>
-      <Block style={{width: width/2, paddingVertical: 5, paddingHorizontal: 10, alignItems: 'flex-end', justifyContent: 'flex-end'}}>
-      <Text style={{
-                  color: '#2C4453',
-                  fontSize: 14,
-                  fontFamily: 'HKGrotesk-BoldLegacy',
-                  zIndex: 2
-                }}
-              >
-                {this.state.Order.orderNo}
-                  </Text>
-      </Block>
-    </Block>
-        : <Block />}
+        
       </Block>
     )
   }
@@ -372,19 +347,26 @@ componentDidMount(){
                               </Block>  
                           </Block>
             <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+            <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Transaction Amount
+                  </Text>
               <Input
                     left
                     color="black"
                     style={styles.cardinputs}
                     placeholder="Amount"
-                    value={this.state.Order.totalAmount.toString()}
+                    value={this.state.CreditAmount.toString()}
                     onChangeText={text => this.setState({CreditAmount: text})}
                     noicon
+                    editable={false}
                     keyboardType="numeric"
                 />
                           
             </Block>
            <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+           <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Receipt No
+                  </Text>
               <Input
                     left
                     color="black"
@@ -396,12 +378,16 @@ componentDidMount(){
                           
             </Block>
             <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+            <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Transaction Date
+                  </Text>
             <TouchableHighlight onPress={() => this.showDatePicker()}>
               <Block width={width * 0.9} middle style={styles.datepicker}>
                   <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{this.state.CreditDate.toDateString()}</Text>
               </Block>
               </TouchableHighlight>
               <DateTimePickerModal
+              maximumDate={new Date()}
         isVisible={this.state.ShowDatePicker}
         mode="date"
         onConfirm={this.handleConfirm}

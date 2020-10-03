@@ -137,14 +137,14 @@ class Home extends React.Component {
          console.log(response)
          response.json().then(v => {
         this.setState({
-          depot: depot, DailyPrices: v, Group: Group, spinner: false
+          _depot: depot, DailyPrices: v, Group: Group, spinner: false
          })
        })
       });
         }else{
           console.log(1 + this.state.Group)
         this.setState({
-          depot: depot
+          _depot: depot
          })
       }
      }else{
@@ -171,7 +171,7 @@ class Home extends React.Component {
     var _selectedCapacity = this.state.SelectedCapacity;
     var _selectedNumber = this.state.NumCapacity;
     var load = this.state.QuantityLoad;
-    var existIndex = load.findIndex(l=>l.Capacity = _selectedCapacity);
+    var existIndex = load.findIndex(l=>l.Capacity == _selectedCapacity);
     var _quantity = parseInt(this.state.quantity);
     if(existIndex > -1){
       _quantity = _quantity - (parseInt(load[existIndex].Capacity.key) * parseInt(load[existIndex].number))
@@ -195,8 +195,13 @@ class Home extends React.Component {
   }
 
   setModalCreateVisible(visible) {
-    if(!visible)
-      this.setState({TotalAmount: "0"})
+    if(visible)
+      this.setState({TotalAmount: "0", depot: null,
+      product : null,
+      productIndex: null,
+      depotIndex: null,
+      unitPrice: null,currentPosition: 0, QuantityLoad: [],
+      currentState: 0})
 
       this.setState({modalCreateVisible: visible});
     }
@@ -234,7 +239,7 @@ class Home extends React.Component {
             return;
           }else{
             var TotalAmount = parseInt(this.state.quantity) * this.state.product.price;
-            this.setState({TotalAmount: TotalAmount})
+            this.setState({TotalAmount: TotalAmount, CreditAmount: TotalAmount})
           }
         }
         console.log(this.state.ipman)
@@ -352,7 +357,7 @@ class Home extends React.Component {
             })
           }else{
             this.setState({spinner: false})
-            alert("Payment amount not must be less than "+this.state.Order.totalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'))
+            alert("Payment amount not must be less than "+this.state.TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,'))
           }
           }
     }
@@ -641,7 +646,7 @@ renderQuantityPage = () => {
                 </Block>
                 : 
                 <Block middle width={width * 0.9} style={{ marginBottom: 5 }}>
-                  <Block width={47} height={47} style={{ backgroundColor: nowTheme.COLORS.BACKGROUND, marginBottom: 13, marginTop: 33, borderRadius: 50, alignItems: 'center', justifyContent: 'center'}}>
+                  <Block width={47} height={47} style={{ backgroundColor: nowTheme.COLORS.BACKGROUND, marginBottom: 13, marginTop: 23, borderRadius: 50, alignItems: 'center', justifyContent: 'center'}}>
                   <Icon
                       name={'check'}
                       family="octicon"
@@ -653,7 +658,7 @@ renderQuantityPage = () => {
                   <Text style={{fontSize: 14, lineHeight: 24, fontFamily: 'ProductSans-Bold', textAlign: 'center'}}>Congratulations! Your Order has been submitted Successfully.</Text>
 
 
-                    <Block style={{width: (width * 0.9), marginTop: 20, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
+                    <Block style={{width: (width * 0.9), marginTop: 10, paddingVertical: 10, paddingHorizontal: '23%', backgroundColor: '#121112'}}>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF', marginTop: 5, textAlign: 'center'}}>{product.product} (ex {depot.name})</Text>
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Reference No:</Text>
@@ -694,7 +699,7 @@ renderQuantityPage = () => {
           </Block>
 
           { (currentPosition == 3) ?  (
-                          <Block width={width * 0.9} center style={{position: 'absolute', bottom: 50}}>
+                          <Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
                             <GaButton
                                 shadowless
                                 style={styles.button}
@@ -817,6 +822,9 @@ renderQuantityPage = () => {
                               </Block>  
             </Block>
             <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+            <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Transaction Amount
+                  </Text>
               <Input
                     left
                     color="black"
@@ -825,11 +833,15 @@ renderQuantityPage = () => {
                     value={this.state.TotalAmount.toString()}
                     onChangeText={text => this.setState({CreditAmount: text})}
                     noicon
+                    editable={false}
                     keyboardType="numeric"
                 />
                           
             </Block>
            <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+           <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Receipt No
+                  </Text>
               <Input
                     left
                     color="black"
@@ -841,6 +853,9 @@ renderQuantityPage = () => {
                           
             </Block>
             <Block width={width * 0.9} space='between'  style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+            <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Transaction Date
+                  </Text>
             <TouchableHighlight onPress={() => this.showDatePicker()}>
               <Block width={width * 0.9} middle style={styles.datepicker}>
                   <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}>{this.state.CreditDate.toDateString()}</Text>
@@ -848,6 +863,7 @@ renderQuantityPage = () => {
               </TouchableHighlight>
               <DateTimePickerModal
         isVisible={this.state.ShowDatePicker}
+        maximumDate={new Date()}
         mode="date"
         onConfirm={this.handleConfirm}
         onCancel={this.hideDatePicker}
@@ -970,7 +986,7 @@ renderQuantityPage = () => {
           return { key: d.id, label: d.name}
         });
         var depot = (json.depots.length > 0) ? json.depots.find(c=>c.group == this.state.Group): {};
-        this.setState({DailyPrices: json.products, depotX: depots, Depots: json.depots, depot: depot})
+        this.setState({DailyPrices: json.products, depotX: depots, Depots: json.depots, _depot: depot})
         AsyncStorage.setItem('misc', JSON.stringify({DailyPrices: json.products, Depots: json.depots}))
         if(this.state.DailyPrices.length > 0){
           this.setState({spinner: false})
@@ -1022,7 +1038,7 @@ renderQuantityPage = () => {
       <Block row space='between' style={{marginTop: 5}}>
       <ModalSelector
           data={this.state.depotX}
-          initValue={this.state.depot.name}
+          initValue={this.state._depot.name}
           selectStyle={styles.picker}
           selectTextStyle={styles.selectTextStyle}
           initValueTextStyle={styles.initvalueTextStyle}

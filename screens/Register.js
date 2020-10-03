@@ -265,7 +265,7 @@ export default class SignUp extends React.Component {
                     left
                     color="black"
                     style={styles.input}
-                    placeholder="Enter  business name here"
+                    placeholder="Enter your IPMAN Code here"
                     onChangeText={text => this.SetInput({ipmanCode: text})}
                     noicon
                     errorMessage={SignUpErrors.businessName}
