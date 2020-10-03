@@ -840,6 +840,7 @@ onChange = (event, selectedDate) => {
                         color="black"
                         style={styles.cardinputs}
                         placeholder="Amount"
+                        value={this.state.TotalAmount.toString()}
                         onChangeText={text => this.setState({CreditAmount: text})}
                         noicon
                         keyboardType="numeric"

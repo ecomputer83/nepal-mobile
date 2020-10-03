@@ -57,9 +57,12 @@ componentDidMount(){
       response.json().then(value => {
       
       this.setState({programs: value, token: token});
-      HttpService.GetAsync('api/order', token).then(resp => resp.json()
+      HttpService.GetAsync('api/order/credited', token).then(resp => resp.json()
       .then(_value => {
-      this.setState({Orders: _value});
+        var orders = _value.map((v, i) => {
+          return v.order;
+        })
+      this.setState({Orders: orders});
       }))
     })
     })
@@ -116,14 +119,24 @@ componentDidMount(){
       HttpService.PostAsync('api/program', obj, this.state.token).then(response => {
         console.log(response)
         if(response.status == 200){
-        HttpService.GetAsync('api/order', this.state.token)
+        HttpService.GetAsync('api/order/credited', this.state.token)
               .then(response => {
                 console.log(response)
                 response.json().then(value => {
+                  var orders = value.map((v, i) => {
+                    return v.order;
+                  })
+                  HttpService.GetAsync('api/program', this.state.token)
+                  .then(response => {
+                    console.log(response);
+                    response.json().then(program => {
+                    
                 let remainQuantity = this.state.remainQuantity;
                   remainQuantity -= obj.quantity
-                this.setState({Orders: value,TruckNo: null, Destination: null, currentState: 0,spinner: false});
+                this.setState({Orders: orders, programs: program, TruckNo: null, Destination: null, currentState: 0,spinner: false});
                 this.setModalVisible(false);
+                    })
+                  })
           }
 
           )
@@ -187,6 +200,7 @@ componentDidMount(){
   }
 
   renderOrders =() => {
+    console.log(this.state.Orders);
     return this.state.Orders.filter(c=> c.quantity > ((this.programbyorderId(c.orderId).length > 0) ? this.calculatefromProgram(c.orderId) : 0)).map((v, i) => {
       var remainquantity = v.quantity - ((this.programbyorderId(v.orderId).length > 0) ? this.calculatefromProgram(v.orderId) : 0)
       if(remainquantity > 0) {

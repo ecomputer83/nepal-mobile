@@ -377,6 +377,7 @@ componentDidMount(){
                     color="black"
                     style={styles.cardinputs}
                     placeholder="Amount"
+                    value={this.state.Order.totalAmount.toString()}
                     onChangeText={text => this.setState({CreditAmount: text})}
                     noicon
                     keyboardType="numeric"
