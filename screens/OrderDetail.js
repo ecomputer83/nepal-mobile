@@ -218,7 +218,7 @@ componentDidMount(){
           )
         })
         }else{
-          this.setState({spinner: true})
+          this.setState({spinner: false})
           alert("An error ocurred while adding program, contact administrator")
         }
       
@@ -292,6 +292,7 @@ componentDidMount(){
         <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', margin: 10}}>My Orders</Text>
         {this.state.Order != null ?
         (<OrderCard item={this.state.Order} />) : (<Block />) }
+        {this.state.Order != null ?
         <Block row>
       <Block style={{width: width/2,  paddingVertical: 5, paddingHorizontal: 10}}>
       <Text style={{
@@ -316,6 +317,7 @@ componentDidMount(){
                   </Text>
       </Block>
     </Block>
+        : <Block />}
       </Block>
     )
   }

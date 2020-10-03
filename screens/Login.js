@@ -25,7 +25,6 @@ export default function Login ( {navigation}) {
   const [spinner, setSpinner] = useState(false);
   const [SignUpErrors, setSignUpErrors] = useState({});
   const handleLeftPress = () => {
-    const { navigation } = this.props;
     return navigation.goBack(null);
   };
 

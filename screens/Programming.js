@@ -105,7 +105,7 @@ componentDidMount(){
     AddProgram = () => {
       if((this.state.totalquantity - this.state.Quantity) == 0 || (this.state.totalquantity - this.state.Quantity) >= 33000){
       let obj = {
-          orderId: this.state.Order.orderId,
+          orderId: this.state.orderId,
           truckNo: this.state.TruckNo,
           quantity: parseInt(this.state.Quantity),
           destination: this.state.Destination + ', ' + this.state.LGA + ', ' + this.state.State,
@@ -116,20 +116,20 @@ componentDidMount(){
       HttpService.PostAsync('api/program', obj, this.state.token).then(response => {
         console.log(response)
         if(response.status == 200){
-        HttpService.GetAsync('api/order/'+this.state.Order.orderId, this.state.token)
+        HttpService.GetAsync('api/order', this.state.token)
               .then(response => {
                 console.log(response)
                 response.json().then(value => {
                 let remainQuantity = this.state.remainQuantity;
                   remainQuantity -= obj.quantity
-                this.setState({Order: value, remainQuantity: remainQuantity, TruckNo: null, Quantity: remainQuantity.toString(), Destination: null, currentState: 0,spinner: false});
+                this.setState({Orders: value,TruckNo: null, Destination: null, currentState: 0,spinner: false});
                 this.setModalVisible(false);
           }
 
           )
         })
         }else{
-          this.setState({spinner: true})
+          this.setState({spinner: false})
           alert("An error ocurred while adding program, contact administrator")
         }
       
@@ -212,7 +212,7 @@ componentDidMount(){
   }
   renderModal = () => {
 
-    const {currentState, LGAs} = this.state;
+    const {currentState, LGAs, totalquantity} = this.state;
 
       return (<Modal
           animationType="slide"

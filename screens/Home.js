@@ -418,7 +418,7 @@ renderQuantityPage = () => {
                                   selectStyle={styles.selectStyle}
                                   selectTextStyle={styles.selectTextStyle}
                                   initValueTextStyle={styles.initvalueTextStyle}
-                                  onChange={(itemValue) => this.setBank(itemValue)} />
+                                  onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
                               </Block>  
       </Block>
       <Block width={width * 0.3} row space='between' style={{marginTop: 2, marginLeft: 5, marginRight: 5}} space="between">

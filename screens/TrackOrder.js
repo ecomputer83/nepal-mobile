@@ -474,7 +474,7 @@ onChange = (event, selectedDate) => {
                                   selectStyle={styles.selectStyle}
                                   selectTextStyle={styles.selectTextStyle}
                                   initValueTextStyle={styles.initvalueTextStyle}
-                                  onChange={(itemValue) => this.setBank(itemValue)} />
+                                  onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
                               </Block>  
       </Block>
       <Block width={width * 0.3} row space='between' style={{marginTop: 2, marginLeft: 5, marginRight: 5}} space="between">
@@ -523,7 +523,7 @@ onChange = (event, selectedDate) => {
             return (<TouchableHighlight onPress={() => this.setProduct(p, i)}>
                 <Block width={width * 0.9} row space='between' style={productStyle}>
                     <Text style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16, color: '#ffffff' }}>{p.product}</Text>
-                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#f4f4f4' }}>₦{p.price}/{p.Unit}</Text>
+                    <Text style={{ fontFamily: 'HKGrotesk-MediumLegacy', fontSize: 16, color: '#f4f4f4' }}>₦{p.price}/{p.unit}</Text>
                 </Block>
             </TouchableHighlight>)
         })

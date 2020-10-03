@@ -143,15 +143,20 @@ export default class SignUp extends React.Component {
   }
 
   renderIPMANCode = () => {
+    const { navigation } = this.props;
+    const { phoneNumber, viewstate, SignUpErrors } = this.state;
     return (
-      <Block flex style={{width: width, marginTop: 100}}>
+      <Block flex  style={styles.padded}>
         <Block space="between" > 
         <Block>
             <Text size={20} style={{marginLeft: 21, marginBottom:5, fontFamily: 'HKGrotesk-Bold'}}>
             We are glad to take you on board!
             </Text>
             </Block>
-        <Block style={{marginVertical: 1}}>
+            <Block style={{
+                  marginTop: 5, marginLeft:20
+                }}>
+                <Block style={{marginVertical: 1}}>
                 <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
                   Email Address
                   </Text>
@@ -193,6 +198,7 @@ export default class SignUp extends React.Component {
                     errorMessage={SignUpErrors.confirmPassword}
                 />
                 </Block>
+                </Block>
           </Block>
           <Block
               row
@@ -216,7 +222,7 @@ export default class SignUp extends React.Component {
                   </Text>
                 </Button>
                 </Block>
-                <Block width={width * 0.5}>
+                <Block width={width * 0.44} style={{alignItems: 'flex-end'}}>
                 <Button
                   shadowless
                   style={styles.registerbutton}
@@ -341,7 +347,7 @@ export default class SignUp extends React.Component {
               <Block
               
                 style={{
-                  marginTop: 3.5,
+                  marginTop: 10.5,
                   marginBottom: theme.SIZES.BASE * 10
                 }}
               >
