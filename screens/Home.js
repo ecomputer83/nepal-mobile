@@ -384,25 +384,31 @@ class Home extends React.Component {
       
       if(this.state.OrderId != 0){
         this.setState({spinner: true})
-      var model = {
-        orderId: this.state.OrderId,
-        totalAmount: parseInt(this.state.TotalAmount),
-        type: 2,
-        creditDate: new Date()
+        var model = {
+          orderId: this.state.OrderId,
+          totalAmount: parseInt(this.state.TotalAmount),
+          type: 2,
+          creditDate: new Date()
+        }
+        HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
+          AsyncStorage.getItem("user").then(_user => {
+            var user = JSON.parse(_user);
+            user.creditBalance = (parseInt(user.creditBalance) - this.state.TotalAmount).toString();
+            await AsyncStorage.mergeItem("user", JSON.stringify(user))
+            this.setModalPaymentVisible(false);
+          this.setModalCreateVisible(false);
+          this.setState({spinner: false})
+          Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
+          })
+          
+        })
       }
-      HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
-        this.setModalPaymentVisible(false);
-        this.setModalCreateVisible(false);
-        this.setState({spinner: false})
-        Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
-      })
-    }
     }
     else {
       this.setState({isnoteligible: true})
       Alert.alert("Credit Request", "You have insufficient credit balance to proceed, Kindly make payment")
     }
-}
+  }
   backHome = () => {
       this.setModalPaymentVisible(false);
         this.props.navigation.navigate('Home')

@@ -164,24 +164,27 @@ componentDidMount(){
     // }
 
     requestcredit = () => {
-      if(this.state.Balance >= parseInt(this.state.Order.totalAmount)){
+      if(this.state.Balance >= parseInt(this.state.TotalAmount)){
         
-        if(this.state.Order != null){
+        if(this.state.OrderId != 0){
           this.setState({spinner: true})
           var model = {
-            orderId: this.state.Order.orderId,
-            totalAmount: parseInt(this.state.Order.totalAmount),
-            type: 2
+            orderId: this.state.OrderId,
+            totalAmount: parseInt(this.state.TotalAmount),
+            type: 2,
+            creditDate: new Date()
           }
           HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
-            console.log(response);
-            HttpService.GetAsync('api/order/'+this.state.Order.orderId, this.state.token)
-                .then(response => response.json().then(value => {
-                this.setState({Credit: value.credit, Order: value, spinner: false});
-              
-            this.setState({})
+            AsyncStorage.getItem("user").then(_user => {
+              var user = JSON.parse(_user);
+              user.creditBalance = (parseInt(user.creditBalance) - this.state.TotalAmount).toString();
+              await AsyncStorage.mergeItem("user", JSON.stringify(user))
+              this.setModalPaymentVisible(false);
+            this.setModalCreateVisible(false);
+            this.setState({spinner: false})
             Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
-                }))
+            })
+            
           })
         }
       }

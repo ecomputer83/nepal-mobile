@@ -411,10 +411,16 @@ onChange = (event, selectedDate) => {
             creditDate: new Date()
           }
           HttpService.PostAsync('api/Credit', model, this.state.token).then( response => {
-            this.setModalPaymentVisible(false);
+            AsyncStorage.getItem("user").then(_user => {
+              var user = JSON.parse(_user);
+              user.creditBalance = (parseInt(user.creditBalance) - this.state.TotalAmount).toString();
+              await AsyncStorage.mergeItem("user", JSON.stringify(user))
+              this.setModalPaymentVisible(false);
             this.setModalCreateVisible(false);
             this.setState({spinner: false})
             Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
+            })
+            
           })
         }
       }
