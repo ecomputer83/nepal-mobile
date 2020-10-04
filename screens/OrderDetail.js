@@ -178,11 +178,12 @@ componentDidMount(){
             AsyncStorage.getItem("user").then(_user => {
               var user = JSON.parse(_user);
               user.creditBalance = (parseInt(user.creditBalance) - this.state.TotalAmount).toString();
-              await AsyncStorage.mergeItem("user", JSON.stringify(user))
-              this.setModalPaymentVisible(false);
+              AsyncStorage.mergeItem("user", JSON.stringify(user)).then( o => {
+                this.setModalPaymentVisible(false);
             this.setModalCreateVisible(false);
             this.setState({spinner: false})
             Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
+              })
             })
             
           })
@@ -788,9 +789,10 @@ componentDidMount(){
           <Block row style={{zIndex: 3, position: 'absolute', top: '70%', right: '5%'}}>
         {(this.state.isNew && this.state.Credit == null && this.state.Order == null) ?
         <Block />
-          : (this.state.Order.quantity > (this.state.programs.length > 0 ? this.state.programs.map(o=>o.quantity).reduce((a,c)=>a+c): 0)) ?
+          : ((this.state.Order.quantity > (this.state.programs.length > 0 ? this.state.programs.map(o=>o.quantity).reduce((a,c)=>a+c): 0)) && this.state.Credit != null) ?
         <FloatingActionButton
           iconName="plus"
+          size={56}
           iconType="AntDesign"
           textDisable
           backgroundColor={nowTheme.COLORS.BACKGROUND}
@@ -801,6 +803,7 @@ componentDidMount(){
         {(this.state.programs.length != 0 && this.state.isNew) ?
         <FloatingActionButton
           iconName="check"
+          size={56}
           iconType="AntDesign"
           textDisable
           backgroundColor={nowTheme.COLORS.BACKGROUND}

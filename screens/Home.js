@@ -394,11 +394,12 @@ class Home extends React.Component {
           AsyncStorage.getItem("user").then(_user => {
             var user = JSON.parse(_user);
             user.creditBalance = (parseInt(user.creditBalance) - this.state.TotalAmount).toString();
-            await AsyncStorage.mergeItem("user", JSON.stringify(user))
-            this.setModalPaymentVisible(false);
+            AsyncStorage.mergeItem("user", JSON.stringify(user)).then( o => {
+              this.setModalPaymentVisible(false);
           this.setModalCreateVisible(false);
           this.setState({spinner: false})
           Alert.alert("Credit Request", "Your credit approval request is sent successfully. Your order will be confirmed upon credit approval");
+            })
           })
           
         })

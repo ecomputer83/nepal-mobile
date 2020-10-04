@@ -44,6 +44,18 @@ class Programming extends React.Component {
 constructor(props) {
   super(props);
 }
+
+GetOrder = () => {
+  AsyncStorage.getItem('userToken').then(token => {
+      HttpService.GetAsync('api/order/credited', token).then(resp => resp.json()
+      .then(_value => {
+        var orders = _value.map((v, i) => {
+          return v.order;
+        })
+      this.setState({Orders: orders});
+      }))
+    })
+}
 componentDidMount(){
   
   AsyncStorage.getItem('user').then(data =>{ 
@@ -200,6 +212,7 @@ componentDidMount(){
   }
 
   renderOrders =() => {
+    this.GetOrder();
     console.log(this.state.Orders);
     return this.state.Orders.filter(c=> c.quantity > ((this.programbyorderId(c.orderId).length > 0) ? this.calculatefromProgram(c.orderId) : 0)).map((v, i) => {
       var remainquantity = v.quantity - ((this.programbyorderId(v.orderId).length > 0) ? this.calculatefromProgram(v.orderId) : 0)
