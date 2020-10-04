@@ -160,7 +160,7 @@ const IndicatorStyles = {
     if(visible)
       this.setState({TotalAmount: "0", depot: null,
       product : null,
-      productIndex: null,
+      productIndex: null, quantity: "0",
       depotIndex: null,
       unitPrice: null,currentPosition: 0, QuantityLoad: [],
       currentState: 0})
@@ -849,7 +849,7 @@ onChange = (event, selectedDate) => {
                         color="black"
                         style={styles.cardinputs}
                         placeholder="Amount"
-                        value={this.state.TotalAmount.toString()}
+                        value={this.state.TotalAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                         onChangeText={text => this.setState({CreditAmount: text})}
                         noicon
                         editable={false}

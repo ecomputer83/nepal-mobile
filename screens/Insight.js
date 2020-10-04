@@ -27,7 +27,7 @@ class Insight extends React.Component {
             ]
           }
     }
-    componentDidMount(){
+    getChart =() => {
         AsyncStorage.getItem('userToken').then(token => {
             HttpService.GetAsync('api/order', token).then(resp => resp.json()
               .then(_value => {
@@ -41,6 +41,10 @@ class Insight extends React.Component {
                   }
               this.setState({Data: chart});
               }))
+            })
+    }
+    componentDidMount(){
+        AsyncStorage.getItem('userToken').then(token => {
 
               HttpService.GetAsync('api/misc/marketer', token).then(resp => {
                   if(resp.status == 200){
@@ -117,6 +121,8 @@ class Insight extends React.Component {
             marginVertical: 8,
             ...chartConfigs.style
           }
+
+          this.getChart();
         return (
             <ScrollView>
             <Block center>

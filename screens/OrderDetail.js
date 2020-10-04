@@ -355,7 +355,7 @@ componentDidMount(){
                     color="black"
                     style={styles.cardinputs}
                     placeholder="Amount"
-                    value={this.state.CreditAmount.toString()}
+                    value={this.state.CreditAmount.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')}
                     onChangeText={text => this.setState({CreditAmount: text})}
                     noicon
                     editable={false}
