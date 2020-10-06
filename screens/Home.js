@@ -828,7 +828,7 @@ renderQuantityPage = () => {
                         color="black"
                         style={styles.cardinputs}
                         placeholder="Amount"
-                        value={this.state.OrderNo.toString()}
+                        value={this.state.orderNo}
                         noicon
                         editable={false}
                     />
