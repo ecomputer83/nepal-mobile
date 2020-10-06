@@ -773,7 +773,7 @@ componentDidMount(){
   }
   render () {
     const {remainQuantity} = this.state;
-      return (<Block style={{width: width, height: height, backgroundColor: '#FAFAFA'}}>
+      return (<Block style={{width: width, backgroundColor: '#FAFAFA'}}>
           <Spinner
                 visible={this.state.spinner}
                 textContent={'Loading...'}
@@ -786,7 +786,7 @@ componentDidMount(){
           {this.state.Order != null ? this.renderPrograms() : (<Block />)}
           {this.renderModal()}
           {this.renderPaymentModal()}
-          <Block row style={{zIndex: 3, position: 'absolute', top: '70%', right: '5%'}}>
+          <Block row style={{zIndex: 3, position: 'absolute', bottom: '10%', right: '5%'}}>
         {(this.state.isNew && this.state.Credit == null && this.state.Order == null) ?
         <Block />
           : ((this.state.Order.quantity > (this.state.programs.length > 0 ? this.state.programs.map(o=>o.quantity).reduce((a,c)=>a+c): 0)) && this.state.Credit != null) ?

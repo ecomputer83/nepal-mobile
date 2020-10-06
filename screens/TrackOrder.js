@@ -170,6 +170,9 @@ const IndicatorStyles = {
     }
 
       setModalPaymentVisible(visible) {
+        if(!visible)
+        alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
+  
         this.setState({modalPaymentVisible: visible});
       }
 
@@ -687,10 +690,10 @@ onChange = (event, selectedDate) => {
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>List Unit Price:</Text>
                       <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.price}</Text>
                     </Block>
-                    <Block row space='between'>
+                    {/* <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Discount Offered:</Text>
                       <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>0</Text>
-                    </Block>
+                    </Block> */}
                     <Block row space='between'>
                     <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>Net Unit Price:</Text>
                       <Text style={{fontSize: 12, lineHeight: 15, fontFamily: 'HKGrotesk-Regular', color: '#FFFFFF'}}>{product.price}</Text>
@@ -833,10 +836,25 @@ onChange = (event, selectedDate) => {
                 <Block  width={width * 0.9} style={{ padding: 2 }}>
                   <Block>
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-                                <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium'}}>Enter Bank Teller details</Text>
+                                <Text style={{fontSize: 24, lineHeight: 40, fontFamily: 'HKGrotesk-Medium'}}>Enter payment details</Text>
                                 <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
                 You are expected to make payment at any bank, please provide the payment information
                 </Text>
+                <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
+                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
+                  Order Reference No
+                  </Text>
+                  <Input
+                        left
+                        color="black"
+                        style={styles.cardinputs}
+                        placeholder="Amount"
+                        value={this.state.OrderNo.toString()}
+                        noicon
+                        editable={false}
+                    />
+                              
+                </Block>
                 <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
                 <Block style={styles.dropdownpicker}>
                               <ModalSelector

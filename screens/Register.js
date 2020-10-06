@@ -76,6 +76,7 @@ export default class SignUp extends React.Component {
     validateAll(data, rules, messages)
         .then(() => {
             this.setState({spinner: true})
+            console.log(data)
             HttpService.PostAsync('api/account/register', data)
             .then(response => {
                 if(response.status == 200){
