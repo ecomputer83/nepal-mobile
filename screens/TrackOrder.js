@@ -170,7 +170,7 @@ const IndicatorStyles = {
     }
 
       setModalPaymentVisible(visible) {
-        if(!visible)
+        if(!visible && !this.state.CompletePayment)
         alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
   
         this.setState({modalPaymentVisible: visible});
