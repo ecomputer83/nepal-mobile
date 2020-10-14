@@ -198,7 +198,7 @@ componentDidMount(){
   renderFeature = () => {
     return this.state.programs.map((v,i) => {
       let index = i++
-      return (<FeatureCard item={v} index={index} />)
+      return (<FeatureCard item={v} index={index} Navigation={this.props.navigation}/>)
     })
   }
 
@@ -234,7 +234,7 @@ componentDidMount(){
         <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', marginBottom: 10}}>General Program</Text>
       <FlatList data={this.state.programs} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
         index++
-        return <DetailCard item={item} index={index} />
+        return <DetailCard item={item} index={index}  Navigation={this.props.navigation}/>
       }}/></Block>)
   }
   renderModal = () => {

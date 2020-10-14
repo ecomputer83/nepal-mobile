@@ -16,7 +16,7 @@ import CardPayment from '../screens/CardPayment';
 import Programming from '../screens/Programming';
 import TrackOrder from '../screens/TrackOrder';
 import Insight from '../screens/Insight';
-import RegReview from '../screens/RegReview';
+import ProgramDetail from '../screens/ProgramDetail';
 // drawer
 import Menu from './Menu';
 
@@ -96,6 +96,12 @@ const TrackOrderStack = createStackNavigator(
         header: <Header back bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title='Order Information' navigation={navigation} />
       })
     },
+    ProgramDetail: {
+      screen: ProgramDetail,
+      navigationOptions: ({ navigation }) => ({
+        header: <Header back bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title='Program Truck Tracking' navigation={navigation} />
+      })
+    },
     BankAccount: {
       screen: BankAccounts,
       navigationOptions: ({ navigation }) => ({
@@ -146,6 +152,12 @@ const DispatchStack = createStackNavigator(
       screen: Programming,
       navigationOptions: ({ navigation }) => ({
         header: <Header bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title="Program" navigation={navigation} />
+      })
+    },
+    ProgramDetail: {
+      screen: ProgramDetail,
+      navigationOptions: ({ navigation }) => ({
+        header: <Header back bgColor={nowTheme.COLORS.PRIMARY} iconColor={nowTheme.COLORS.WHITE} title='Program Truck Tracking' navigation={navigation} />
       })
     },
   },

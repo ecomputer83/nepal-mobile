@@ -1,7 +1,7 @@
 import React from 'react';
 import { Block, Text, theme, Button as GaButton } from 'galio-framework';
 import { nowTheme } from '../constants';
-import { Dimensions, StyleSheet } from 'react-native';
+import { Dimensions, StyleSheet, TouchableWithoutFeedback } from 'react-native';
 
 const { width } = Dimensions.get('screen');
 export default class DetailCard extends React.Component {
@@ -11,13 +11,15 @@ export default class DetailCard extends React.Component {
             item,
             index,
             bgColor,
+            Navigation,
             ...props
           } = this.props;
             const PrimaryColor = nowTheme.COLORS.PRIMARY;
             const BlackColor = nowTheme.COLORS.BLACK;
+        
           return ( 
-              <Block flex style={styles.shadow, {width:(width - 20), padding:10, marginBottom:10, backgroundColor: '#ffffff'
-            }}>
+            <TouchableWithoutFeedback onPress={() => (Navigation) ? Navigation.navigate('ProgramDetail', { Program: item }): {}}>
+              <Block flex style={styles.shadow, {width:(width - 20), padding:10, marginBottom:10, backgroundColor: '#ffffff'}}>
                 <Block>
             <Block row space='between' style={{width:(width - 10) * 0.9}}>
             <Text
@@ -29,7 +31,7 @@ export default class DetailCard extends React.Component {
               >
                 {item.truckNo}
                   </Text>
-            <Text
+            {index ? <Text
                 style={{
                   color: '#B4B4B4',
                   fontSize: 16,
@@ -37,7 +39,7 @@ export default class DetailCard extends React.Component {
                 }}
               >
                 #{index}
-                  </Text>
+                  </Text>: <Block />}
             </Block>
             <Block row space='between' style={{width: (width - 10) * 0.8, marginTop: 15}}>
             <Text size={10} style={{fontFamily: 'HKGrotesk-Regular', lineHeight: 14, color: '#919191'}}>Destination</Text>
@@ -64,7 +66,8 @@ export default class DetailCard extends React.Component {
                   </Text>
                 </Block>
                   </Block>
-          </Block>)
+          </Block>
+          </TouchableWithoutFeedback>)
     }
 }
 

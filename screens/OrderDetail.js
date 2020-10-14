@@ -307,7 +307,7 @@ componentDidMount(){
         <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', marginBottom: 10}}>Order Program</Text>
       <FlatList data={this.state.Order.programs} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
         index++
-        return <DetailCard item={item} index={index} />
+        return <DetailCard item={item} index={index} Navigation={this.props.navigation} />
       }}/></Block>)
   }
   renderPaymentModal = () => {

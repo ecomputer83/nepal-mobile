@@ -1,7 +1,7 @@
 import React from 'react';
 import { Block, Text, theme, Button as GaButton } from 'galio-framework';
 import { nowTheme, Images } from '../constants';
-import { Dimensions, StyleSheet, ImageBackground } from 'react-native';
+import { Dimensions, StyleSheet, ImageBackground, TouchableWithoutFeedback } from 'react-native';
 
 const { width } = Dimensions.get('screen');
 export default class FeatureCard extends React.Component {
@@ -11,11 +11,13 @@ export default class FeatureCard extends React.Component {
             item,
             index,
             bgColor,
+            Navigation,
             ...props
           } = this.props;
             const PrimaryColor = nowTheme.COLORS.PRIMARY;
             const BlackColor = nowTheme.COLORS.WHITE;
           return ( 
+            <TouchableWithoutFeedback onPress={() => (Navigation) ? Navigation.navigate('ProgramDetail', { Program: item }): {}}>
             <ImageBackground source={Images.ProgramCard} style={{width: 315, height: 105, margin: 10,padding: 15}}>
                 <Block>
             <Block row space='between' style={{width:285}}>
@@ -63,7 +65,8 @@ export default class FeatureCard extends React.Component {
                   </Text>
                 </Block>
                   </Block>
-          </ImageBackground>)
+          </ImageBackground>
+          </TouchableWithoutFeedback>)
     }
 }
 
