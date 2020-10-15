@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     marginTop: Platform.OS === 'android' ? 0 : 0
   },
   padded: {
-    marginTop: 179
+    marginTop: 139
   },
   button: {
     width: width - 40,

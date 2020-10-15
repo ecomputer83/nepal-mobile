@@ -92,6 +92,7 @@ class Home extends React.Component {
       Capacity: [{key: 33000, label: '33,000'}, {key: 40000, label: '40,000'}, {key: 45000, label: '45,000'}, {key: 60000, label: '60,000'},{key: 90000, label: '90,000'}],
       SelectedCapacity: {"key": 33000, "label": "33,000"},
       NumCapacity: '1',
+      OnSet: false,
       orderNo: null,
       selector: () => this.Selector('Select Capacity'),
       ShowDatePicker:  false,
@@ -102,7 +103,7 @@ class Home extends React.Component {
   }
   pinInput = React.createRef();
   reset = () => {
-    this.setState({NumCapacity: '1', selector: () => this.Selector(' Select Capacity ') })
+    this.setState({NumCapacity: '1', selector: () => this.Selector( (this.state.OnSet) ? ' Select Capacity ': 'Select Capacity'), OnSet: !this.state.OnSet })
   }
   readData = async () => {
     
@@ -224,7 +225,7 @@ class Home extends React.Component {
     setModalPaymentVisible(visible) {
       if(!visible && !this.state.CompletePayment)
       alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
-      this.setState({modalPaymentVisible: visible});
+      this.setState({modalPaymentVisible: visible, orderNo: null, orderId: 0});
     }
 
     setModalProgramVisible(visible) {
@@ -272,10 +273,16 @@ class Home extends React.Component {
           console.log(model)
            HttpService.PostAsync('api/Order', model, this.state.token).then(response => {
              console.log(response)
+             if(response.status != 200)
+             {
+               this.setModalCreateVisible(false);
+               alert("Sorry, there is an issue with the server, kindly contact the administrator");
+               return
+             }else{
              response.json().then(value => 
            {
              console.log(value);
-             this.setState({OrderId: v, spinner: true})
+             this.setState({OrderId: value, spinner: true})
              HttpService.GetAsync('api/Order/' + value, this.state.token).then(response => {
                console.log(response);
                response.json().then(order => {
@@ -284,7 +291,9 @@ class Home extends React.Component {
               
              })
             })
+          
            })
+          }
           });
        }else{
            HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => 

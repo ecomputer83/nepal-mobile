@@ -461,7 +461,7 @@ componentDidMount(){
   }
   render () {
     const {remainQuantity} = this.state;
-      return (<Block style={{width: width, height: height, backgroundColor: '#FAFAFA'}}>
+      return (<Block flex style={{width: width, height: height, backgroundColor: '#FAFAFA'}}>
           <Spinner
                 visible={this.state.spinner}
                 textContent={'Saving...'}
@@ -470,7 +470,7 @@ componentDidMount(){
           {this.state.features.length == 0 ? <Block />: this.renderFeatures()}
           {this.renderPrograms()}
           {this.renderModal()}
-          <Block row style={{zIndex: 3, position: 'absolute', top: '70%', right: '5%'}}>
+          <Block row style={{zIndex: 3, position: 'absolute', top: '90%', right: '5%'}}>
         {(this.state.isNew && this.state.remainQuantity == 0) ?
         <Block />
           :

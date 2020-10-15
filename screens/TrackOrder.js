@@ -100,7 +100,7 @@ const IndicatorStyles = {
       return await AsyncStorage.getItem('user');
     }
     reset = () => {
-      this.setState({NumCapacity: '1', selector: () => this.Selector(' Select Capacity ') })
+      this.setState({NumCapacity: '1', selector: () => this.Selector( (this.state.OnSet) ? ' Select Capacity ': 'Select Capacity'), OnSet: !this.state.OnSet })
     }
     pickerProduct(index){
         this.state.DailyPrices.map( (v,i)=>{
@@ -189,7 +189,7 @@ const IndicatorStyles = {
         if(!visible && !this.state.CompletePayment)
         alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
   
-        this.setState({modalPaymentVisible: visible});
+        this.setState({modalPaymentVisible: visible, OrderNo: null, OrderId: 0});
       }
 
       setModalProgramVisible(visible) {
@@ -235,7 +235,14 @@ const IndicatorStyles = {
           if(this.state.OrderId == 0)
           {
             console.log(model)
-             HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(v => 
+             HttpService.PostAsync('api/Order', model, this.state.token).then(response => {
+              if(response.status != 200)
+              {
+                this.setModalCreateVisible(false);
+                alert("Sorry, there is an issue with the server, kindly contact the administrator");
+                return
+              }
+                response.json().then(v => 
              {
                console.log(v);
                this.setState({OrderId: v, spinner: true})
@@ -258,7 +265,9 @@ const IndicatorStyles = {
                 //depot: this.state.Depots[0],
                 spinner: false, CompletePayment: false
               });
-             }));
+            
+             })
+            });
          }else{
              HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => response.json().then(v => 
              {

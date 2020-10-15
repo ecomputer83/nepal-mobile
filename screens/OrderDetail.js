@@ -303,7 +303,7 @@ componentDidMount(){
 
   renderPrograms = () => {
       let index = 0;
-      return (<Block style={{ zIndex: 1, margin: 10 }}>
+      return (<Block style={{ zIndex: 1, margin: 10, height: height * 0.6 }}>
         <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', marginBottom: 10}}>Order Program</Text>
       <FlatList data={this.state.Order.programs} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
         index++
@@ -773,7 +773,7 @@ componentDidMount(){
   }
   render () {
     const {remainQuantity} = this.state;
-      return (<Block style={{width: width, backgroundColor: '#FAFAFA'}}>
+      return (<Block flex style={{width: width, backgroundColor: '#FAFAFA'}}>
           <Spinner
                 visible={this.state.spinner}
                 textContent={'Loading...'}
@@ -786,7 +786,7 @@ componentDidMount(){
           {this.state.Order != null ? this.renderPrograms() : (<Block />)}
           {this.renderModal()}
           {this.renderPaymentModal()}
-          <Block row style={{zIndex: 3, position: 'absolute', top: height * 0.7, right: '5%'}}>
+          <Block row style={{zIndex: 3, position: 'absolute', top: '90%', right: '5%'}}>
         {(this.state.isNew && this.state.Credit == null && this.state.Order == null) ?
         <Block />
           : ((this.state.Order.quantity > (this.state.programs.length > 0 ? this.state.programs.map(o=>o.quantity).reduce((a,c)=>a+c): 0)) && this.state.Credit != null) ?
@@ -800,18 +800,7 @@ componentDidMount(){
           iconColor={nowTheme.COLORS.WHITE}
           onPress = {() => this.setModalVisible(true)}
         /> :  <Block /> }
-        {(this.state.programs.length != 0 && this.state.isNew) ?
-        <FloatingActionButton
-          iconName="check"
-          size={56}
-          iconType="AntDesign"
-          textDisable
-          backgroundColor={nowTheme.COLORS.BACKGROUND}
-          rippleColor={nowTheme.COLORS.WHITE}
-          iconColor={nowTheme.COLORS.WHITE}
-          
-          onPress = {() => this.saveandnavigate()}
-        /> : <Block />} 
+        
              </Block> 
       </Block>)
     }
