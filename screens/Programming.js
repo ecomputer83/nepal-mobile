@@ -18,6 +18,7 @@ class Programming extends React.Component {
     totalquantity: 0,
     remainQuantity: 0,
     programs: [],
+    features: [],
     SelectedOrder: null,
     Orders: [],
     TruckNo: null,
@@ -63,6 +64,7 @@ componentDidMount(){
       this.setState({ipman: user.isIPMAN, Balance: user.creditBalance});
   })
   AsyncStorage.getItem('userToken').then(token => {
+    this.setState({spinner: true})
     HttpService.GetAsync('api/program', token)
     .then(response => {
       console.log(response);
@@ -74,9 +76,16 @@ componentDidMount(){
         var orders = _value.map((v, i) => {
           return v.order;
         })
-      this.setState({Orders: orders});
+      this.setState({Orders: orders, spinner: false});
       }))
     })
+    })
+    HttpService.GetAsync('api/program/working', token)
+    .then(response => {
+      console.log(response);
+      response.json().then(value => {
+        this.setState({features: value});
+      })
     })
   })
   
@@ -196,7 +205,7 @@ componentDidMount(){
   }
 
   renderFeature = () => {
-    return this.state.programs.map((v,i) => {
+    return this.state.features.map((v,i) => {
       let index = i++
       return (<FeatureCard item={v} index={index} Navigation={this.props.navigation}/>)
     })
@@ -230,7 +239,7 @@ componentDidMount(){
   }
   renderPrograms = () => {
       let index = 0;
-      return (<Block style={{ zIndex: 1, margin: 10 }}>
+      return (<Block style={{ zIndex: 1, margin: 10, height: height * 0.6 }}>
         <Text size={10} style={{fontFamily: 'HKGrotesk-SemiBoldLegacy', lineHeight: 14, color: '#919191', marginBottom: 10}}>General Program</Text>
       <FlatList data={this.state.programs} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
         index++
@@ -458,7 +467,7 @@ componentDidMount(){
                 textContent={'Saving...'}
                 textStyle={styles.spinnerTextStyle}
               />
-          {this.state.programs.length == 0 ? <Block />: this.renderFeatures()}
+          {this.state.features.length == 0 ? <Block />: this.renderFeatures()}
           {this.renderPrograms()}
           {this.renderModal()}
           <Block row style={{zIndex: 3, position: 'absolute', top: '70%', right: '5%'}}>
