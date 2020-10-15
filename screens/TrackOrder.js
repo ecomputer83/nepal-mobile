@@ -41,6 +41,8 @@ const IndicatorStyles = {
     labelFontFamily: 'HKGrotesk-Regular',
     currentStepLabelColor: '#E37E2E'
   }
+  const Capacity = [{key: 33000, label: '33,000'}, {key: 40000, label: '40,000'}, {key: 45000, label: '45,000'}, {key: 60000, label: '60,000'},{key: 90000, label: '90,000'}]
+
 
   class TrackOrder extends React.Component {
     
@@ -85,6 +87,7 @@ const IndicatorStyles = {
       NumCapacity: '1',
       ShowDatePicker:  false,
       OrderNo: null,
+      selector: () => this.Selector('Select Capacity'),
       Group: "",
       Banks: []
     }
@@ -95,6 +98,9 @@ const IndicatorStyles = {
     }
     readData = async () => {
       return await AsyncStorage.getItem('user');
+    }
+    reset = () => {
+      this.setState({NumCapacity: '1', selector: () => this.Selector(' Select Capacity ') })
     }
     pickerProduct(index){
         this.state.DailyPrices.map( (v,i)=>{
@@ -115,6 +121,15 @@ const IndicatorStyles = {
        }
       })
   }
+  Selector = (ky) => (
+    <ModalSelector
+    data={Capacity }
+    initValue={ky}
+    selectStyle={styles.selectStyle}
+    selectTextStyle={styles.selectTextStyle}
+    initValueTextStyle={styles.initvalueTextStyle}
+    onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
+  );
   showDatePicker = () => {
     this.setState({ShowDatePicker: true});
   };
@@ -144,6 +159,7 @@ const IndicatorStyles = {
     }
     console.log(load)
     this.setState({QuantityLoad: load, quantity: _quantity, ifInputupdated: true});
+    this.reset();
   }
 
 
@@ -222,13 +238,13 @@ const IndicatorStyles = {
              HttpService.PostAsync('api/Order', model, this.state.token).then(response => response.json().then(v => 
              {
                console.log(v);
-               this.setState({OrderId: v})
+               this.setState({OrderId: v, spinner: true})
                HttpService.GetAsync('api/Order', this.state.token).then(response => {
                 console.log(response)
                 response.json().then(value => {
                   //console.log(value)
                   var newOrder = value.find(c=>c.orderId == v)
-                  this.setState({Orders: value, OriginalOrders: value, OrderNo: newOrder.orderNo});
+                  this.setState({Orders: value, OriginalOrders: value, OrderNo: newOrder.orderNo, spinner: false});
       
                   
                 })
@@ -485,13 +501,7 @@ onChange = (event, selectedDate) => {
           <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
           <Block width={width * 0.5} row space='between' style={{paddingVertical: 10, paddingHorizontal: 5}}>
        <Block style={styles.dropdownpicker}>
-                              <ModalSelector
-                                  data={this.state.Capacity }
-                                  initValue='Select Capacity'
-                                  selectStyle={styles.selectStyle}
-                                  selectTextStyle={styles.selectTextStyle}
-                                  initValueTextStyle={styles.initvalueTextStyle}
-                                  onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
+                  {this.state.selector() }
                               </Block>  
       </Block>
       <Block width={width * 0.3} row space='between' style={{marginTop: 2, marginLeft: 5, marginRight: 5}} space="between">

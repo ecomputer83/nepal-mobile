@@ -43,6 +43,9 @@ const IndicatorStyles = {
     currentStepLabelColor: '#E37E2E'
   }
 const ratio = width / height;
+const Capacity = [{key: 33000, label: '33,000'}, {key: 40000, label: '40,000'}, {key: 45000, label: '45,000'}, {key: 60000, label: '60,000'},{key: 90000, label: '90,000'}]
+
+
 class Home extends React.Component {
   
   constructor(props) {
@@ -67,8 +70,8 @@ class Home extends React.Component {
         quantity: "0",
         unitPrice: null,
         TotalAmount: "0",
-        PhoneNumber: '',
-        code: '',
+        PhoneNumber: 'Select Capacity',
+        code: 'Select Capacity',
         ifInputupdated: false,
         Name: 'Business Name',
       Limit: 0,
@@ -90,6 +93,7 @@ class Home extends React.Component {
       SelectedCapacity: {"key": 33000, "label": "33,000"},
       NumCapacity: '1',
       orderNo: null,
+      selector: () => this.Selector('Select Capacity'),
       ShowDatePicker:  false,
       Group: "OGHARA",
       SelectedGroup: ""
@@ -97,7 +101,9 @@ class Home extends React.Component {
     
   }
   pinInput = React.createRef();
-
+  reset = () => {
+    this.setState({NumCapacity: '1', selector: () => this.Selector(' Select Capacity ') })
+  }
   readData = async () => {
     
     return await AsyncStorage.getItem('user');
@@ -153,7 +159,15 @@ class Home extends React.Component {
      }
     
   }
-
+  Selector = (ky) => (
+    <ModalSelector
+    data={Capacity }
+    initValue={ky}
+    selectStyle={styles.selectStyle}
+    selectTextStyle={styles.selectTextStyle}
+    initValueTextStyle={styles.initvalueTextStyle}
+    onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
+  );
   showDatePicker = () => {
     this.setState({ShowDatePicker: true});
   };
@@ -183,6 +197,7 @@ class Home extends React.Component {
     }
     console.log(load)
     this.setState({QuantityLoad: load, quantity: _quantity, ifInputupdated: true});
+    this.reset();
   }
 
   removeQuantity = (index) => {
@@ -260,11 +275,12 @@ class Home extends React.Component {
              response.json().then(value => 
            {
              console.log(value);
+             this.setState({OrderId: v, spinner: true})
              HttpService.GetAsync('api/Order/' + value, this.state.token).then(response => {
                console.log(response);
                response.json().then(order => {
               console.log(order);
-              this.setState({OrderId: value, orderNo: order.orderNo})
+              this.setState({OrderId: value, orderNo: order.orderNo, spinner: false})
               
              })
             })
@@ -319,7 +335,7 @@ class Home extends React.Component {
     _checkCode = (code) => {
       if (code != '1234') {
         this.pinInput.current.shake()
-          .then(() => this.setState({ code: '' }));
+          .then(() => this.setState({ code: 'Select Capacity' }));
       }
     }
     Proceed(){
@@ -426,13 +442,7 @@ renderQuantityPage = () => {
       <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
       <Block width={width * 0.5} row space='between' style={{paddingVertical: 10, paddingHorizontal: 5}}>
        <Block style={styles.dropdownpicker}>
-                              <ModalSelector
-                                  data={this.state.Capacity }
-                                  initValue='Select Capacity'
-                                  selectStyle={styles.selectStyle}
-                                  selectTextStyle={styles.selectTextStyle}
-                                  initValueTextStyle={styles.initvalueTextStyle}
-                                  onChange={(itemValue) => this.setState({SelectedCapacity: itemValue})} />
+                      {this.state.selector() }
                               </Block>  
       </Block>
       <Block width={width * 0.3} row space='between' style={{marginTop: 2, marginLeft: 5, marginRight: 5}} space="between">
