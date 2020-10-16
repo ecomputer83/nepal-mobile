@@ -6,12 +6,13 @@ import { createIconSetFromFontello } from 'react-native-vector-icons';
 import Login from '../screens/Login';
 import Register from '../screens/Register';
 import Onboarding from '../screens/Onboarding';
-
+import ForgotPassword from '../screens/Reset';
 import RegReview from '../screens/RegReview';
 // drawer
 import Menu from './Menu';
 
 import fontelloConfig from '../config.json';
+
 const Fontello = createIconSetFromFontello(fontelloConfig);
 
 const AppStack = createStackNavigator(
@@ -24,6 +25,12 @@ const AppStack = createStackNavigator(
     },
     Login: {
       screen: Login,
+      navigationOptions: {
+        header: null,
+    },
+    },
+    ForgotPassword: {
+      screen: ForgotPassword,
       navigationOptions: {
         header: null,
     },

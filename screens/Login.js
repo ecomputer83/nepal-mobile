@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { ImageBackground, ScrollView, StyleSheet, StatusBar, Dimensions, Platform, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { ImageBackground, ScrollView, StyleSheet, StatusBar, Dimensions, Platform, TouchableWithoutFeedback,TouchableHighlight, Keyboard } from 'react-native';
 import { Block, Button, Text, theme } from 'galio-framework';
 import AsyncStorage from '@react-native-community/async-storage'
 import { validateAll } from 'indicative/validator';
@@ -146,6 +146,8 @@ export default function Login ( {navigation}) {
                     Log In
                   </Text>
                 </Button>
+                <TouchableHighlight onPress={() => {navigation.navigate('ForgotPassword');}}><Text style={{fontSize: 16, lineHeight: 18, fontFamily: 'ProductSans-Medium', color: '#23C9F1', marginTop: 10, textAlign: 'center'}}>Forgot Password</Text></TouchableHighlight>
+
                 </Block>
                 </Block>
             </Block>
