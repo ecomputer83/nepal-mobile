@@ -86,7 +86,8 @@ constructor(props) {
   token: null,
   orderId: (Params.orderId) ? Params.orderId : 0,
   isQuantitySet: false,
-  ShowDatePicker:  false
+  ShowDatePicker:  false,
+  userno: null
 }
 }
 setBank =(itemValue) => {
@@ -95,7 +96,7 @@ setBank =(itemValue) => {
 componentDidMount(){
   AsyncStorage.getItem('user').then(data =>{ 
       var user = JSON.parse(data)
-      this.setState({ipman: user.isIPMAN, Balance: user.creditBalance});
+      this.setState({ipman: user.isIPMAN, Balance: user.creditBalance, userno: user.userNo});
   })
   this.setState({spinner: true})
   AsyncStorage.getItem('userToken').then(token => {
@@ -781,7 +782,7 @@ componentDidMount(){
               />
           {this.renderFeatures()}
           {this.state.Order != null ? this.renderDepot() : (<Block />)}
-          {this.state.Credit != null ? this.renderCredit() : this.renderButtons()}
+          {this.state.Credit != null ? this.renderCredit() : (this.state.userno != null) ? this.renderButtons() : (<Block />)}
           
           {this.state.Order != null ? this.renderPrograms() : (<Block />)}
           {this.renderModal()}

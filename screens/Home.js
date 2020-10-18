@@ -97,7 +97,8 @@ class Home extends React.Component {
       selector: () => this.Selector('Select Capacity'),
       ShowDatePicker:  false,
       Group: "OGHARA",
-      SelectedGroup: ""
+      SelectedGroup: "",
+      userno: null
     }
     
   }
@@ -279,6 +280,7 @@ class Home extends React.Component {
                alert("Sorry, there is an issue with the server, kindly contact the administrator");
                return
              }else{
+               if(this.state.userno != null){
              response.json().then(value => 
            {
              console.log(value);
@@ -293,6 +295,9 @@ class Home extends React.Component {
             })
           
            })
+          }else{
+            alert("Your account is awaiting approval, Our agent will contact you shortly");
+          }
           }
           });
        }else{
@@ -603,12 +608,13 @@ renderQuantityPage = () => {
         Limit: user.creditLimit,
         Balance: user.creditBalance,
         ipman: user.isIPMAN,
+        userno: user.userNo,
         isfetched: true
         })
       }
     });
     }
-    const {currentPosition, unitPrice, TotalAmount, product, depot, quantity, ifInputupdated} = this.state;
+    const {currentPosition, userno, TotalAmount, product, depot, quantity, ifInputupdated} = this.state;
 
       return (<Modal
           animationType="slide"
@@ -742,8 +748,7 @@ renderQuantityPage = () => {
                                 </Text>
                             </GaButton>
                           </Block>)
-                           : (currentPosition > 3) ? (
-                            <Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
+                           : (currentPosition > 3) ? (userno != null) ? (<Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
                               {(this.state.ipman == 0) ? (
                               <GaButton
                                   shadowless
@@ -785,7 +790,21 @@ renderQuantityPage = () => {
                                       Submit Bank Deposit
                                   </Text>
                               </GaButton>
-                            </Block>) 
+                            </Block>) : (<Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
+                                  <GaButton
+                                      shadowless
+                                      style={styles.button}
+                                      color={nowTheme.COLORS.PRIMARY}
+                                      onPress={() => this.setModalCreateVisible(false)}
+                                  >
+                                      <Text
+                                          style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
+                                          color={theme.COLORS.WHITE}
+                                      >
+                                          Close
+                                      </Text>
+                                  </GaButton>
+                                </Block>)
                             : 
                             <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
                             { (currentPosition == 2) ?

@@ -242,6 +242,7 @@ const IndicatorStyles = {
                 alert("Sorry, there is an issue with the server, kindly contact the administrator");
                 return
               }
+              if(this.state.userno != null){
                 response.json().then(v => 
              {
                console.log(v);
@@ -267,6 +268,9 @@ const IndicatorStyles = {
               });
             
              })
+              }else{
+                alert("Your account is awaiting approval, Our agent will contact you shortly");
+              }
             });
          }else{
              HttpService.PutAsync('api/Order/' + this.state.OrderId, model, this.state.token).then(response => response.json().then(v => 
@@ -617,14 +621,14 @@ onChange = (event, selectedDate) => {
           }
         });
         }
-        const {currentPosition, unitPrice, TotalAmount, product, depot, quantity, ifInputupdated} = this.state;
+        const {currentPosition, userno, TotalAmount, product, depot, quantity, ifInputupdated} = this.state;
 
           return (<Modal
               animationType="slide"
               transparent={false}
               visible={this.state.modalCreateVisible}
               onRequestClose={() => {
-                this.setModalCreateVisible(false)
+                this.setModalCreateVisible(false) 
               }}>
               <Block  flex center style={{backgroundColor: '#FAFAFA', paddingTop: iPhoneX() ? theme.SIZES.BASE * 3.5 : theme.SIZES.BASE }}>
                 <Block row space='between' style={{width: width, padding: 10, alignItems:'center', marginBottom: 20, borderBottomColor: '#1D1D1D24', borderBottomWidth: 1}}>
@@ -751,7 +755,7 @@ onChange = (event, selectedDate) => {
                                     </Text>
                                 </GaButton>
                               </Block>)
-                               : (currentPosition > 3) ? (
+                               : (currentPosition > 3) ? (userno != null) ? (
                                 <Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
                                   {(this.state.ipman == 0) ? (
                                   <GaButton
@@ -794,7 +798,22 @@ onChange = (event, selectedDate) => {
                                           Submit Bank Deposit
                                       </Text>
                                   </GaButton>
-                                </Block>) 
+                                </Block>
+                                ) : (<Block width={width * 0.9} center style={{position: 'absolute', bottom: 40}}>
+                                  <GaButton
+                                      shadowless
+                                      style={styles.button}
+                                      color={nowTheme.COLORS.PRIMARY}
+                                      onPress={() => this.setModalCreateVisible(false)}
+                                  >
+                                      <Text
+                                          style={{ fontFamily: 'HKGrotesk-SemiBoldLegacy', fontSize: 16 }}
+                                          color={theme.COLORS.WHITE}
+                                      >
+                                          Close
+                                      </Text>
+                                  </GaButton>
+                                </Block>)
                                 : 
                                 <Block width={width * 0.7} center style={{position: 'absolute', bottom: 50}}>
                                 { (currentPosition == 2) ?
