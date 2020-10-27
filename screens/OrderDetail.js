@@ -89,7 +89,8 @@ constructor(props) {
   orderId: (Params.orderId) ? Params.orderId : 0,
   isQuantitySet: false,
   ShowDatePicker:  false,
-  userno: null
+  userno: null,
+  newDevice: false
 }
 }
 setBank =(itemValue) => {
@@ -117,6 +118,7 @@ componentDidMount(){
         AsyncStorage.getItem('newDevice').then( value => {
           if(value == undefined || value == null){
             this.props.start();
+            this.setState({newDevice: true})
           }
         }).catch(e => {
           this.props.start();
@@ -165,7 +167,7 @@ componentDidMount(){
     Next(){
       var currentState = this.state.currentState + 1
       this.setState({currentState: currentState, ifInputupdated: false})
-      if(currentState >= 2){
+      if(currentState >= 2 && this.state.newDevice){
         this.props.start('load')
         console.log('this.props')
       }
@@ -227,6 +229,7 @@ componentDidMount(){
               .then(response => {
                 console.log(response)
                 response.json().then(value => {
+                  AsyncStorage.setItem("newDevice", "device");
                 let remainQuantity = this.state.remainQuantity;
                   remainQuantity -= obj.quantity
                 this.setState({Order: value, remainQuantity: remainQuantity, TruckNo: null, Quantity: remainQuantity.toString(), Destination: null, currentState: 0,spinner: false});

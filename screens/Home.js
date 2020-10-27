@@ -101,7 +101,8 @@ class Home extends React.Component {
       ShowDatePicker:  false,
       Group: "OGHARA",
       SelectedGroup: "",
-      userno: null
+      userno: null,
+      newDevice: false
     }
     
   }
@@ -224,15 +225,19 @@ class Home extends React.Component {
       currentState: 0})
 
       this.setState({modalCreateVisible: visible});
+      if(this.state.newDevice){
       this.props.start('depot');
       console.log(this.props)
+      }
     }
 
     setModalPaymentVisible(visible) {
       if(!visible && !this.state.CompletePayment)
       alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
       this.setState({modalPaymentVisible: visible, orderNo: null, orderId: 0});
+      if(this.state.newDevice){
       this.props.start('payment');
+      }
     }
 
     setModalProgramVisible(visible) {
@@ -350,7 +355,7 @@ class Home extends React.Component {
         ifup = true
       }
       this.setState({currentPosition: currentPosition, ifInputupdated: ifup})
-      if(currentPosition == 2){
+      if(currentPosition == 2 && this.state.newDevice){
       this.props.start('capacity');
       console.log(this.props)
       }
@@ -1091,7 +1096,7 @@ renderQuantityPage = () => {
           AsyncStorage.getItem('newDevice').then( value => {
             if(value == undefined || value == null){
               this.props.start();
-              console.log(this.props)
+              this.setState({newDevice: true})
             }
           }).catch(e => {
             this.props.start();

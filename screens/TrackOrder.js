@@ -92,7 +92,8 @@ const IndicatorStyles = {
       OrderNo: null,
       selector: () => this.Selector('Select Capacity'),
       Group: "",
-      Banks: []
+      Banks: [],
+      newDevice: false
     }
     pinInput = React.createRef();
 
@@ -186,8 +187,10 @@ const IndicatorStyles = {
 
       
       this.setState({modalCreateVisible: visible});
+      if(this.state.newDevice){
       this.props.start('depot');
       console.log(this.props)
+      }
     }
 
       setModalPaymentVisible(visible) {
@@ -195,7 +198,9 @@ const IndicatorStyles = {
         alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
   
         this.setState({modalPaymentVisible: visible, OrderNo: null, OrderId: 0});
+        if(this.state.newDevice){
         this.props.start('payment');
+        }
       }
 
       setModalProgramVisible(visible) {
@@ -372,7 +377,7 @@ const IndicatorStyles = {
           ifup = true
         }
         this.setState({currentPosition: currentPosition, ifInputupdated: ifup})
-        if(currentPosition == 2){
+        if(currentPosition == 2 && this.state.newDevice){
           this.props.start('capacity');
           console.log(this.props)
           }
@@ -1091,6 +1096,7 @@ onChange = (event, selectedDate) => {
             if(value == undefined || value == null){
               this.props.start();
               console.log(this.props)
+              this.setState({newDevice: true})
             }
           }).catch(e => {
             this.props.start();

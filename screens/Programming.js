@@ -41,7 +41,8 @@ class Programming extends React.Component {
     ipman: false,
     Balance: '0',
     isQuantitySet: false,
-    orderId: 0
+    orderId: 0,
+    mewDevice: false
 }
 
 constructor(props) {
@@ -82,7 +83,7 @@ componentDidMount(){
       AsyncStorage.getItem('newDevice').then( value => {
         if(value == undefined || value == null){
           this.props.start();
-          console.log(this.props)
+          this.setState({newDevice: true})
         }
       }).catch(e => {
         this.props.start();
@@ -102,7 +103,9 @@ componentDidMount(){
 }
     setModalVisible(visible) {
       this.setState({modalVisible: visible});
+      if(this.state.newDevice){
       this.props.start('order')
+      }
     }
     setQuantity(number){
       this.setState({Quantity: number.toString(), isQuantitySet: true, ifInputupdated: true})
@@ -126,7 +129,7 @@ componentDidMount(){
     Next(){
       var currentState = this.state.currentState + 1
       this.setState({currentState: currentState, ifInputupdated: false})
-      if(currentState >= 3){
+      if(currentState >= 3 && this.state.newDevice){
         this.props.start('load')
         console.log(this.props)
       }
@@ -166,7 +169,7 @@ componentDidMount(){
                   .then(response => {
                     console.log(response);
                     response.json().then(program => {
-                    
+                    AsyncStorage.setItem("newDevice", "device");
                 let remainQuantity = this.state.remainQuantity;
                   remainQuantity -= obj.quantity
                 this.setState({Orders: orders, programs: program, TruckNo: null, Destination: null, currentState: 0,spinner: false});
