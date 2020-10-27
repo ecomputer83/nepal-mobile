@@ -13,9 +13,12 @@ import TextInputMask from 'react-native-text-input-mask';
 import FloatingActionButton from "react-native-floating-action-button";
 import HttpService from "../services/HttpService";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import Theme from "../constants/Theme";
+import { copilot, walkthroughable, CopilotStep } from "react-native-copilot";
 
 const { width, height } = Dimensions.get("screen");
+const CopilotText = walkthroughable(Text);
+const CopilotBlock = walkthroughable(View);
+const CopilotInput = walkthroughable(Input);
 const iPhoneX = () =>
   Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896);
 const IndicatorStyles = {
@@ -221,12 +224,15 @@ class Home extends React.Component {
       currentState: 0})
 
       this.setState({modalCreateVisible: visible});
+      this.props.start('depot');
+      console.log(this.props)
     }
 
     setModalPaymentVisible(visible) {
       if(!visible && !this.state.CompletePayment)
       alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
       this.setState({modalPaymentVisible: visible, orderNo: null, orderId: 0});
+      this.props.start('payment');
     }
 
     setModalProgramVisible(visible) {
@@ -344,6 +350,10 @@ class Home extends React.Component {
         ifup = true
       }
       this.setState({currentPosition: currentPosition, ifInputupdated: ifup})
+      if(currentPosition == 2){
+      this.props.start('capacity');
+      console.log(this.props)
+      }
     }
 
     _checkCode = (code) => {
@@ -454,12 +464,18 @@ renderQuantityPage = () => {
   <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What quantity do you want to buy?</Text>
 
       <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
-      <Block width={width * 0.5} row space='between' style={{paddingVertical: 10, paddingHorizontal: 5}}>
-       <Block style={styles.dropdownpicker}>
+      <View width={width * 0.5} style={{paddingVertical: 10, paddingHorizontal: 5, flexDirection: 'row', justifyContent: `space-between`}}>
+      <CopilotStep text="select the truck capacity to order" order={5} name="capacity">
+       <CopilotBlock>
+                  <View  style={styles.dropdownpicker}>
                       {this.state.selector() }
-                              </Block>  
-      </Block>
-      <Block width={width * 0.3} row space='between' style={{marginTop: 2, marginLeft: 5, marginRight: 5}} space="between">
+                  </View>
+            </CopilotBlock>  
+      </CopilotStep>
+      </View>
+      <View width={width * 0.3} style={{marginTop: 2, marginLeft: 5, marginRight: 5, flexDirection: 'row', justifyContent: `space-between`}}>
+      <CopilotStep text="how many of the selected truck capacity you want to order" order={6} name="num">
+      <CopilotBlock>
               <Input
                     left
                     color="black"
@@ -470,12 +486,17 @@ renderQuantityPage = () => {
                     noicon
                     keyboardType="numeric"
                 />
-                          
-        </Block>
+            </CopilotBlock>
+         </CopilotStep>                 
+        </View>
       <Block width={width * 0.1}>
+      <CopilotStep text="click to add, and you can add more" order={7} name="add">
+       <CopilotBlock>
         <TouchableHighlight onPress={() => this.setQuantity() } style={{width: width * 0.1, paddingVertical: 15}}>
           <Icon name="pluscircleo" family="AntDesign" />
         </TouchableHighlight>
+        </CopilotBlock>
+        </CopilotStep>
       </Block>
       </Block>
       <Block row space='between' style={{marginTop: 5, marginBottom: 15}}>
@@ -648,14 +669,21 @@ renderQuantityPage = () => {
               { (currentPosition == 0) ?
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
                             <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Where do you want to load from?</Text>
+                            <CopilotStep text="Click on your preferred depot" order={3} name="depot">
+                              <CopilotBlock>
                                 {this.renderDepots()}
+                              </CopilotBlock>
+                            </CopilotStep>
                             </Block>
               : (currentPosition == 1) ?
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
               <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What product do you want to buy?</Text>  
+              <CopilotStep text="Click on product to order" order={4} name="product">
+                   <CopilotBlock>    
                     {this.renderProducts()}
-                              
-                            </Block>
+                    </CopilotBlock>
+              </CopilotStep>        
+              </Block>
               : (currentPosition == 2)   ?             
               this.renderQuantityPage()
               : (currentPosition == 3) ?
@@ -857,6 +885,8 @@ renderQuantityPage = () => {
                             <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
             You are expected to make payment at any bank, please provide the payment information
             </Text>
+            <CopilotStep text="fill the deposit information on the inputs" order={8} name="payment">
+              <CopilotBlock>
             <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
                 <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
                   Order Reference No
@@ -932,7 +962,8 @@ renderQuantityPage = () => {
       />
                           
             </Block>
-              
+              </CopilotBlock>
+            </CopilotStep>
               <Block style={{marginBottom:  10, marginTop: 20}}></Block>
                             <Block width={width * 0.9} style={{marginBottom: 25}} right>
                             
@@ -1014,7 +1045,13 @@ renderQuantityPage = () => {
             NEWS HIGHLIGHTS
         </Text>
         </Block>
-        <Block>
+        
+        <CopilotStep
+          text="Click here to order any product"
+          order={2}
+          name="todayprice"
+        >
+      <CopilotBlock>
                 <Button
                   shadowless
                   style={styles.yesbutton}
@@ -1028,7 +1065,8 @@ renderQuantityPage = () => {
                     Book Now
                   </Text>
                 </Button>
-          </Block>
+          </CopilotBlock>
+          </CopilotStep>
         </Block>
         <FlatList data={this.state.Articles} keyExtractor={(item, index )=> index.toString()} extraData={this.state} ListHeaderComponent={null} renderItem={({item}) => {
           return <Card item={item} horizontal />
@@ -1052,6 +1090,14 @@ renderQuantityPage = () => {
         AsyncStorage.setItem('misc', JSON.stringify({DailyPrices: json.products, Depots: json.depots}))
         if(this.state.DailyPrices.length > 0){
           this.setState({spinner: false})
+          AsyncStorage.getItem('newDevice').then( value => {
+            if(value == undefined || value == null){
+              this.props.start();
+              console.log(this.props)
+            }
+          }).catch(e => {
+            this.props.start();
+          })
         }
         AsyncStorage.getItem('userToken').then( value => {
           this.setState({ token: value})
@@ -1097,7 +1143,12 @@ renderQuantityPage = () => {
             TODAY'S PRICES
         </Text>
       </Block>
-      <Block row space='between' style={{marginTop: 5}}>
+      <CopilotStep
+          text="Check today's price by depot"
+          order={1}
+          name="depotpicker"
+        >
+      <CopilotBlock space='between' style={{marginTop: 5, flexDirection: 'row', justifyContent: `space-between`}}>
       <ModalSelector
           data={this.state.depotX}
           initValue={this.state._depot.name}
@@ -1111,10 +1162,20 @@ renderQuantityPage = () => {
               size={14}
               color={nowTheme.COLORS.ICON}
             />
+      </CopilotBlock>
+      </CopilotStep>
       </Block>
-      </Block>
+      <CopilotStep
+          text="Here are the product price for today"
+          order={2}
+          name="todayprice"
+        >
+      <CopilotBlock>
       {this.renderPrices()}
+      </CopilotBlock>
+      </CopilotStep>
       <Block style={{margin: 5, padding: 5, backgroundColor: "#ffffff"}}>
+
       <Text style={{ fontFamily: 'HKGrotesk-SemiBold', fontSize: 14, textAlign: 'center' }}>
             Want a price offer? Call +234 NEPAL SALES
         </Text>
@@ -1292,4 +1353,8 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Home;
+export default copilot({
+  verticalOffset: 30,
+  animated: true, // Can be true or false
+  overlay: 'svg', // Can be either view or svg
+})(Home);

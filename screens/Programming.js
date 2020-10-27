@@ -1,5 +1,5 @@
 import React, { Profiler } from 'react';
-import { Modal, StyleSheet, TouchableHighlight, Dimensions, FlatList, Alert, ScrollView , Picker } from 'react-native';
+import { Modal, StyleSheet, TouchableHighlight, Dimensions, FlatList, Alert, ScrollView , View } from 'react-native';
 import { Block, theme,Button as GaButton, Button, Text } from "galio-framework";
 import { Input, Icon, DetailCard, FeatureCard } from '../components';
 import FloatingActionButton from "react-native-floating-action-button";
@@ -9,7 +9,9 @@ import ModalSelector from 'react-native-modal-selector';
 import HttpService from '../services/HttpService';
 import { AsyncStorage } from 'react-native';
 import NaijaStates from 'naija-state-local-government';
+import { copilot, walkthroughable, CopilotStep } from "react-native-copilot";
 const { width, height } = Dimensions.get("screen");
+const CopilotBlock = walkthroughable(View);
 const iPhoneX = () =>
   Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896);
 class Programming extends React.Component {
@@ -77,6 +79,14 @@ componentDidMount(){
           return v.order;
         })
       this.setState({Orders: orders, spinner: false});
+      AsyncStorage.getItem('newDevice').then( value => {
+        if(value == undefined || value == null){
+          this.props.start();
+          console.log(this.props)
+        }
+      }).catch(e => {
+        this.props.start();
+      })
       }))
     })
     })
@@ -92,6 +102,7 @@ componentDidMount(){
 }
     setModalVisible(visible) {
       this.setState({modalVisible: visible});
+      this.props.start('order')
     }
     setQuantity(number){
       this.setState({Quantity: number.toString(), isQuantitySet: true, ifInputupdated: true})
@@ -115,6 +126,10 @@ componentDidMount(){
     Next(){
       var currentState = this.state.currentState + 1
       this.setState({currentState: currentState, ifInputupdated: false})
+      if(currentState >= 3){
+        this.props.start('load')
+        console.log(this.props)
+      }
     }
 
     getPrograms(){
@@ -177,6 +192,7 @@ componentDidMount(){
     setOrder = (p, remain) => {
       this.setState({totalquantity: p.quantity, orderId: p.orderId,
         remainQuantity: remain, currentState: 1})
+        
     }
 
     saveandnavigate = () => {
@@ -277,8 +293,10 @@ componentDidMount(){
               { (currentState == 0) ?
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
               <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What Order Do you want to load?</Text>  
+              <CopilotStep text="Choose order to load, the remain quantity is being display beside order number" order={8} name="order">
+                  <CopilotBlock>
                     {this.renderOrders()}
-                              
+                    </CopilotBlock></CopilotStep>        
                             </Block>
               : (currentState == 1) ?
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
@@ -334,6 +352,8 @@ componentDidMount(){
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
   <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Quantity to Load</Text>
   <Block style={{marginTop: 5}} visible={!this.state.isQuantitySet}>
+  <CopilotStep text="Choose truck capacity to load" order={8} name="load">
+                  <CopilotBlock>
       {totalquantity >= 33000 ? (<Button
                   shadowless style={styles.nobutton}
                   color={nowTheme.COLORS.PRIMARY}
@@ -394,6 +414,7 @@ componentDidMount(){
                     90,000
                   </Text>
                 </Button>) : <Block /> }
+                </CopilotBlock></CopilotStep>
         </Block>
         <Block visible={this.state.isQuantitySet} style={{marginTop: 10}}>
         <Input
@@ -474,6 +495,12 @@ componentDidMount(){
         {(this.state.isNew && this.state.remainQuantity == 0) ?
         <Block />
           :
+          <CopilotStep
+          text="Click here to add program truck"
+          order={1}
+          name="addprogram"
+        >
+       <CopilotBlock>
         <FloatingActionButton
           iconName="plus"
           iconType="AntDesign"
@@ -482,7 +509,8 @@ componentDidMount(){
           rippleColor={nowTheme.COLORS.WHITE}
           iconColor={nowTheme.COLORS.WHITE}
           onPress = {() => this.setModalVisible(true)}
-        /> }
+        />
+        </CopilotBlock></CopilotStep> }
         {(this.state.programs.length != 0 && this.state.isNew) ?
         <FloatingActionButton
           iconName="check"
@@ -574,4 +602,8 @@ const styles = StyleSheet.create({
         marginVertical: theme.SIZES.BASE / 2
       }
 })
-export default Programming
+export default copilot({
+  verticalOffset: 30,
+  animated: true, // Can be true or false
+  overlay: 'svg', // Can be either view or svg
+})(Programming)

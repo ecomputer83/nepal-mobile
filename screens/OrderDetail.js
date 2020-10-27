@@ -1,5 +1,5 @@
 import React, { Profiler } from 'react';
-import { Modal, StyleSheet, TouchableHighlight, Dimensions, FlatList, Alert, ScrollView , Picker } from 'react-native';
+import { Modal, StyleSheet, TouchableHighlight, Dimensions, FlatList, Alert, ScrollView , View } from 'react-native';
 import { Block, theme,Button as GaButton, Button, Text } from "galio-framework";
 import { Input, Icon, DetailCard, OrderCard } from '../components';
 import FloatingActionButton from "react-native-floating-action-button";
@@ -11,7 +11,9 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import NaijaStates from 'naija-state-local-government';
 import { AsyncStorage } from 'react-native';
+import { copilot, walkthroughable, CopilotStep } from "react-native-copilot";
 const { width, height } = Dimensions.get("screen");
+const CopilotBlock = walkthroughable(View);
 const iPhoneX = () =>
   Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896);
 class OrderDetail extends React.Component {
@@ -112,6 +114,13 @@ componentDidMount(){
     .then(response => response.json().then(value => {
       this.setState({Order: value, totalquantity: value.quantity, programs: value.programs, CreditAmount: value.totalAmount,
         remainQuantity: value.quantity, Credit: value.credit, token: token, spinner: false});
+        AsyncStorage.getItem('newDevice').then( value => {
+          if(value == undefined || value == null){
+            this.props.start();
+          }
+        }).catch(e => {
+          this.props.start();
+        })
     }
 
     ))
@@ -156,6 +165,10 @@ componentDidMount(){
     Next(){
       var currentState = this.state.currentState + 1
       this.setState({currentState: currentState, ifInputupdated: false})
+      if(currentState >= 2){
+        this.props.start('load')
+        console.log('this.props')
+      }
     }
 
     // getPrograms(){
@@ -340,7 +353,10 @@ componentDidMount(){
                             <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
             You are expected to make payment at any bank, please provide the payment information
             </Text>
+            <CopilotStep text="fill the deposit information on the inputs" order={8} name="payment">
+                  <CopilotBlock>
             <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
+              
             <Block style={styles.dropdownpicker}>
                               <ModalSelector
                                   data={this.state.Banks }
@@ -400,7 +416,7 @@ componentDidMount(){
       />
                           
             </Block>
-              
+            </CopilotBlock></CopilotStep>
               <Block style={{marginBottom:  10, marginTop: 20}}></Block>
                             <Block width={width * 0.9} style={{marginBottom: 25}} right>
                             
@@ -647,6 +663,8 @@ componentDidMount(){
               <Block width={width * 0.9} style={{ marginBottom: 5 }}>
   <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Quantity to Load</Text>
   <Block style={{marginTop: 5}} visible={!this.state.isQuantitySet}>
+  <CopilotStep text="Choose truck capacity to load" order={8} name="load">
+                  <CopilotBlock>
       {(this.state.Order.quantity >= 33000) ? (<Button
                   shadowless style={styles.nobutton}
                   color={nowTheme.COLORS.WHITE}
@@ -707,6 +725,7 @@ componentDidMount(){
                     90,000
                   </Text>
                 </Button>) : <Block /> }
+          </CopilotBlock></CopilotStep>
         </Block>
         <Block visible={this.state.isQuantitySet} style={{marginTop: 10}}>
         <Input
@@ -791,6 +810,12 @@ componentDidMount(){
         {(this.state.isNew && this.state.Credit == null && this.state.Order == null) ?
         <Block />
           : ((this.state.Order.quantity > (this.state.programs.length > 0 ? this.state.programs.map(o=>o.quantity).reduce((a,c)=>a+c): 0)) && this.state.Credit != null) ?
+          <CopilotStep
+          text="Click here to add program truck"
+          order={1}
+          name="addprogram"
+        >
+       <CopilotBlock>
         <FloatingActionButton
           iconName="plus"
           size={56}
@@ -800,7 +825,9 @@ componentDidMount(){
           rippleColor={nowTheme.COLORS.WHITE}
           iconColor={nowTheme.COLORS.WHITE}
           onPress = {() => this.setModalVisible(true)}
-        /> :  <Block /> }
+        />
+        </CopilotBlock></CopilotStep>
+         :  <Block /> }
         
              </Block> 
       </Block>)
@@ -909,4 +936,8 @@ const styles = StyleSheet.create({
         marginVertical: theme.SIZES.BASE / 2
       }
 })
-export default OrderDetail
+export default copilot({
+  verticalOffset: 30,
+  animated: true, // Can be true or false
+  overlay: 'svg', // Can be either view or svg
+})(OrderDetail)

@@ -13,8 +13,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import ModalSelector from 'react-native-modal-selector';
 import HttpService from "../services/HttpService";
+import { copilot, walkthroughable, CopilotStep } from "react-native-copilot";
 
 const { width, height } = Dimensions.get("screen");
+const CopilotBlock = walkthroughable(View);
+
 const iPhoneX = () =>
   Platform.OS === 'ios' && (height === 812 || width === 812 || height === 896 || width === 896);
 const IndicatorStyles = {
@@ -183,6 +186,8 @@ const IndicatorStyles = {
 
       
       this.setState({modalCreateVisible: visible});
+      this.props.start('depot');
+      console.log(this.props)
     }
 
       setModalPaymentVisible(visible) {
@@ -190,6 +195,7 @@ const IndicatorStyles = {
         alert("Continue payment by selecting the order with reference no "+this.state.orderNo+" from Orders tab");
   
         this.setState({modalPaymentVisible: visible, OrderNo: null, OrderId: 0});
+        this.props.start('payment');
       }
 
       setModalProgramVisible(visible) {
@@ -366,6 +372,10 @@ const IndicatorStyles = {
           ifup = true
         }
         this.setState({currentPosition: currentPosition, ifInputupdated: ifup})
+        if(currentPosition == 2){
+          this.props.start('capacity');
+          console.log(this.props)
+          }
       }
 
       _checkCode = (code) => {
@@ -513,11 +523,17 @@ onChange = (event, selectedDate) => {
     
           <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
           <Block width={width * 0.5} row space='between' style={{paddingVertical: 10, paddingHorizontal: 5}}>
-       <Block style={styles.dropdownpicker}>
+          <CopilotStep text="select the truck capacity to order" order={5} name="capacity">
+            <CopilotBlock>
+                  <View  style={styles.dropdownpicker}>
                   {this.state.selector() }
-                              </Block>  
+                  </View>
+            </CopilotBlock>  
+      </CopilotStep>
       </Block>
       <Block width={width * 0.3} row space='between' style={{marginTop: 2, marginLeft: 5, marginRight: 5}} space="between">
+      <CopilotStep text="how many of the selected truck capacity you want to order" order={6} name="num">
+        <CopilotBlock>
               <Input
                     left
                     color="black"
@@ -528,12 +544,17 @@ onChange = (event, selectedDate) => {
                     noicon
                     keyboardType="numeric"
                 />
-                          
+            </CopilotBlock>
+         </CopilotStep>              
         </Block>
           <Block width={width * 0.1}>
+          <CopilotStep text="click to add, and you can add more" order={7} name="add">
+            <CopilotBlock>
             <TouchableHighlight onPress={() => this.setQuantity() } style={{width: width * 0.1, paddingVertical: 15}}>
               <Icon name="pluscircleo" family="AntDesign" />
             </TouchableHighlight>
+            </CopilotBlock>
+          </CopilotStep>
           </Block>
           </Block>
           <Block row space='between' style={{marginTop: 5, marginBottom: 15}}>
@@ -655,13 +676,20 @@ onChange = (event, selectedDate) => {
                   { (currentPosition == 0) ?
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
                                 <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>Where do you want to load from?</Text>
+                                <CopilotStep text="Click on your preferred depot" order={3} name="depot">
+                                  <CopilotBlock>
                                     {this.renderDepots()}
+                                    </CopilotBlock>
+                                  </CopilotStep>
                                 </Block>
                   : (currentPosition == 1) ?
                   <Block width={width * 0.9} style={{ marginBottom: 5 }}>
-                  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What product do you want to buy?</Text>  
+                  <Text style={{fontSize: 16, lineHeight: 40, fontFamily: 'HKGrotesk-Bold'}}>What product do you want to buy?</Text>
+                  <CopilotStep text="Click on product to order" order={4} name="product">
+                    <CopilotBlock>    
                         {this.renderProducts()}
-                                  
+                    </CopilotBlock>
+                    </CopilotStep>             
                                 </Block>
                   : (currentPosition == 2)   ?             
                   this.renderQuantityPage()
@@ -878,6 +906,8 @@ onChange = (event, selectedDate) => {
                                 <Text size={14} style={{color: '#0A0716', lineHeight: 15, fontFamily: 'HKGrotesk-Regular'}}>
                 You are expected to make payment at any bank, please provide the payment information
                 </Text>
+                <CopilotStep text="fill the deposit information on the inputs" order={8} name="payment">
+                  <CopilotBlock>
                 <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
                 <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
                   Order Reference No
@@ -953,7 +983,8 @@ onChange = (event, selectedDate) => {
           />
                               
                 </Block>
-                  
+                </CopilotBlock>
+            </CopilotStep>
                   <Block style={{marginBottom:  10, marginTop: 20}}></Block>
                                 <Block width={width * 0.9} style={{marginBottom: 25}} right>
                                 
@@ -1058,6 +1089,14 @@ onChange = (event, selectedDate) => {
             
           })
           this.setState({spinner: false});
+          AsyncStorage.getItem('newDevice').then( value => {
+            if(value == undefined || value == null){
+              this.props.start();
+              console.log(this.props)
+            }
+          }).catch(e => {
+            this.props.start();
+          })
         })
       })
       AsyncStorage.getItem('misc').then(value => {
@@ -1079,6 +1118,12 @@ onChange = (event, selectedDate) => {
                 {this.renderPaymentModal()}
                 {/* {this.renderProgramModal(true)} */}
                     <Block row style={{zIndex: 3, position: 'absolute', top: '90%', right: '5%'}}>
+                    <CopilotStep
+          text="Click here to order any product"
+          order={1}
+          name="booknow"
+        >
+       <CopilotBlock>
           <FloatingActionButton
             iconName="plus"
             iconType="AntDesign"
@@ -1088,6 +1133,8 @@ onChange = (event, selectedDate) => {
             iconColor={nowTheme.COLORS.WHITE}
             onPress = {() => this.setModalCreateVisible(true)}
           />
+          </CopilotBlock>
+            </CopilotStep>
                </Block> 
                     <Block flex={1} space="between">
                         <Block flex={0.08}>
@@ -1249,4 +1296,8 @@ const styles = StyleSheet.create({
       }
 });
 
-export default TrackOrder
+export default copilot({
+  verticalOffset: 30,
+  animated: true, // Can be true or false
+  overlay: 'svg', // Can be either view or svg
+})(TrackOrder)
