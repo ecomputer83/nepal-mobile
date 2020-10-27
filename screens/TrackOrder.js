@@ -915,7 +915,7 @@ onChange = (event, selectedDate) => {
                         color="black"
                         style={styles.cardinputs}
                         placeholder="Amount"
-                        value={this.state.orderNo}
+                        value={this.state.OrderNo}
                         noicon
                         editable={false}
                     />
