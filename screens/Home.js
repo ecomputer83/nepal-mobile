@@ -466,10 +466,8 @@ renderQuantityPage = () => {
       <Block row space='between' style={{marginTop: 5, marginBottom: 20}}>
       <View width={width * 0.5} style={{paddingVertical: 10, paddingHorizontal: 5, flexDirection: 'row', justifyContent: `space-between`}}>
       <CopilotStep text="select the truck capacity to order" order={5} name="capacity">
-       <CopilotBlock>
-                  <View  style={styles.dropdownpicker}>
+       <CopilotBlock  style={styles.dropdownpicker}>
                       {this.state.selector() }
-                  </View>
             </CopilotBlock>  
       </CopilotStep>
       </View>
