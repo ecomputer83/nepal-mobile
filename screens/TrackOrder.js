@@ -913,21 +913,7 @@ onChange = (event, selectedDate) => {
                 </Text>
                 <CopilotStep text="fill the deposit information on the inputs" order={8} name="payment">
                   <CopilotBlock>
-                <Block width={width * 0.9} space='between' style={{ marginBottom: 5, marginLeft: 5, marginTop: 5 }}>
-                <Text style={{ fontFamily: 'HKGrotesk-Regular' }} size={14}>
-                  Order Reference No
-                  </Text>
-                  <Input
-                        left
-                        color="black"
-                        style={styles.cardinputs}
-                        placeholder="Amount"
-                        value={this.state.OrderNo}
-                        noicon
-                        editable={false}
-                    />
-                              
-                </Block>
+                
                 <Block width={width * 0.9} style={{ marginBottom: 5, marginLeft: 5, marginTop: 25 }}>
                 <Block style={styles.dropdownpicker}>
                               <ModalSelector
