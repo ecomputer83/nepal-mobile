@@ -93,6 +93,7 @@ const IndicatorStyles = {
       selector: () => this.Selector('Select Capacity'),
       Group: "",
       Banks: [],
+      userno: null,
       newDevice: false
     }
     pinInput = React.createRef();
@@ -640,6 +641,7 @@ onChange = (event, selectedDate) => {
             Limit: user.creditLimit,
             Balance: user.creditBalance,
             ipman: user.isIPMAN,
+            userno: user.userNo,
             isfetched: true
             })
           }
